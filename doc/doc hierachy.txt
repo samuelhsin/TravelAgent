@@ -1,0 +1,17 @@
+MyProjects
+ -bin: local code editors (large size)
+ -build: local project configuration
+ --workspace: local eclipse configuration
+ -srccode: github
+ --TravelAgent
+ ---travelAgentAndroid: android code
+ ----org
+ -----travelagent
+ ------android
+ ---lib: code libraries
+ ----app-travelAgentAndroid
+ ---doc: spec, artifacts
+ ---build: product build scripts
+ ---bin: product executors
+ ---deploy: results after build code
+ 

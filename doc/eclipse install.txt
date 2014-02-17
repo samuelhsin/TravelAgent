@@ -1,0 +1,2 @@
+1. download eclipse
+2. install ADT link, https://dl-ssl.google.com/android/eclipse/
