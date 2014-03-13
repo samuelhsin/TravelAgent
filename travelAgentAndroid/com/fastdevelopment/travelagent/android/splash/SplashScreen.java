@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.MotionEvent;
 
-import com.fastdevelopment.travelagent.android.MainActivity;
 import com.fastdevelopment.travelagent.android.R;
 
 public class SplashScreen extends Activity {
@@ -32,13 +31,14 @@ public class SplashScreen extends Activity {
 						sleep(100);
 						waited += 100;
 					}
-				} catch (InterruptedException e) {
+				} catch (Exception e) {
 					// do nothing
 				} finally {
 					finish();
-					Intent i = new Intent();
-					i.setClass(sPlashScreen, MainActivity.class);
-					startActivity(i);
+					// Intent i = new Intent();
+					// i.setClass(sPlashScreen, WelcomeActivity.class);
+					// startActivity(i);
+					startActivity(new Intent("com.fastdevelopment.travelagent.android.WelcomeActivity"));
 				}
 			}
 		};
