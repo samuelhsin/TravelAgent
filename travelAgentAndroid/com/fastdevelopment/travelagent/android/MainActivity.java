@@ -38,9 +38,9 @@ public class MainActivity extends FragmentActivity {
 	private void initData() {
 		fragmentsList = new ArrayList<Fragment>();
 		fragmentsList.add(new ScheduleFragment());
-		fragmentsList.add(new Fragment());
-		fragmentsList.add(new Fragment());
-		fragmentsList.add(new Fragment());
+		fragmentsList.add(new PlansFragment());
+		fragmentsList.add(new NewsFragment());
+		fragmentsList.add(new SettingsFragment());
 
 		tags = new String[] { "Schedule", "Plans", "News", "Settings" };
 
