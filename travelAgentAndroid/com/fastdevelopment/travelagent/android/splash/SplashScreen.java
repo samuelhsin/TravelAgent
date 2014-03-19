@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 
 import com.fastdevelopment.travelagent.android.R;
+import com.fastdevelopment.travelagent.android.orm.DatabaseHelper;
+import com.j256.ormlite.android.apptools.OpenHelperManager;
 
 public class SplashScreen extends Activity {
 
@@ -13,6 +15,8 @@ public class SplashScreen extends Activity {
 	 * The thread to process splash screen events
 	 */
 	private Thread mSplashThread;
+
+	private DatabaseHelper databaseHelper = null;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -56,6 +60,22 @@ public class SplashScreen extends Activity {
 			}
 		}
 		return true;
+	}
+
+	private DatabaseHelper getDBHelper() {
+		if (databaseHelper == null) {
+			databaseHelper = OpenHelperManager.getHelper(this, DatabaseHelper.class);
+		}
+		return databaseHelper;
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		if (databaseHelper != null) {
+			OpenHelperManager.releaseHelper();
+			databaseHelper = null;
+		}
 	}
 
 }
