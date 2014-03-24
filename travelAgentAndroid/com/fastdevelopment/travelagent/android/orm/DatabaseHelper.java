@@ -3,6 +3,7 @@ package com.fastdevelopment.travelagent.android.orm;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.fastdevelopment.travelagent.android.orm.model.User;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
@@ -19,7 +20,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 	@Override
 	public void onCreate(SQLiteDatabase arg0, ConnectionSource arg1) {
 		try {
-			TableUtils.createTable(connectionSource, Name.class);
+			TableUtils.createTable(connectionSource, User.class);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
