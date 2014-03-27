@@ -1,16 +1,24 @@
 package com.fastdevelopment.travelagent.android.common;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.Socket;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.UnknownHostException;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
-import java.security.Security;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -20,37 +28,41 @@ import javax.net.ssl.X509TrustManager;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.params.ConnManagerParams;
+import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
-import org.apache.http.util.EntityUtils;
+import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.protocol.HTTP;
 
 import android.util.Log;
 
 @SuppressWarnings("deprecation")
 public class RestConnectedService implements IHttpConnectedService {
 
-	private HttpClient httpclient = null;
+	private HttpClient httpClient = null;
 
 	@Override
-	public void initHttpClient(int servicePort) throws Exception {
-		String keystorePath = null;
-		String keystorePass = null;
+	public void initHttpClient(int serviceSSLPort) throws Exception {
 
-		httpclient = this.createHttpsClient(servicePort, keystorePath, keystorePass);
+		httpClient = this.createHttpsClient(serviceSSLPort);
 
 	}
 
 	@Override
 	public HttpClient getHttpClient() throws Exception {
-		return httpclient;
+		return httpClient;
 	}
 
 	@Override
@@ -88,7 +100,7 @@ public class RestConnectedService implements IHttpConnectedService {
 
 		try {
 
-			if (httpclient == null) {
+			if (httpClient == null) {
 				Log.w(this.getClass().getSimpleName(), "http client is null!");
 				return null;
 			}
@@ -99,7 +111,7 @@ public class RestConnectedService implements IHttpConnectedService {
 			httppost.setHeader("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
 
 			// request
-			HttpResponse response = httpclient.execute(httppost);
+			HttpResponse response = httpClient.execute(httppost);
 
 			// response
 			try {
@@ -113,17 +125,8 @@ public class RestConnectedService implements IHttpConnectedService {
 						builder.append(line).append("\n");
 					}
 					jsonStr = builder.toString();
-					// virtuoso 2013 plus will append "for(;;);" in return json
-					// value;
-
-					if (jsonStr != null && jsonStr.startsWith("for(;;);")) {
-
-						jsonStr = jsonStr.replace("for(;;);", "");
-
-					}
 
 				}
-				EntityUtils.consume(resEntity);
 			} finally {
 
 			}
@@ -142,7 +145,7 @@ public class RestConnectedService implements IHttpConnectedService {
 
 		try {
 
-			if (httpclient == null) {
+			if (httpClient == null) {
 				Log.w(this.getClass().getSimpleName(), "http client is null!");
 				return null;
 			}
@@ -161,7 +164,7 @@ public class RestConnectedService implements IHttpConnectedService {
 
 			// request
 
-			HttpResponse response = httpclient.execute(httppost);
+			HttpResponse response = httpClient.execute(httppost);
 
 			// response
 			try {
@@ -182,12 +185,7 @@ public class RestConnectedService implements IHttpConnectedService {
 
 					jsonStr = builder.toString();
 
-					if (jsonStr != null) {
-						jsonStr = jsonStr.replace("for(;;);", "");
-					}
-
 				}
-				EntityUtils.consume(resEntity);
 			} finally {
 
 			}
@@ -222,30 +220,40 @@ public class RestConnectedService implements IHttpConnectedService {
 		return httpclient;
 	}
 
-	protected HttpClient createHttpsClient(int port, String keystorePath, String keystorePass) throws Exception {
+	protected HttpClient createHttpsClient(int port) throws Exception {
 		HttpClient httpclient = null;
 
 		try {
-			java.lang.System.setProperty("sun.security.ssl.allowUnsafeRenegotiation", "true");
-			CusX509TrustManager tm = new CusX509TrustManager(keystorePath, keystorePass);
-			SSLContext context = SSLContext.getInstance("TLS");
-			context.init(null, new CusX509TrustManager[] { tm }, null);
 
-			SSLSocketFactory ssf = new SSLSocketFactory(context, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+			KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
 
-			// Register our new socket factory with the typical SSL port and the
-			// correct protocol name.
-			SchemeRegistry schemeRegistry = new SchemeRegistry();
-			// SSLSocketFactory ssf = new SSLSocketFactory(trustStore,
-			// keystorePass);
+			trustStore.load(null, null);
 
-			schemeRegistry.register(new Scheme("https", port, ssf));
+			SSLSocketFactory sf = new SSLSocketFactoryEx(trustStore);
 
-			final HttpParams httpParams = new BasicHttpParams();
+			sf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER); // 允许所有主机的验证
 
-			ThreadSafeClientConnManager mgr = new ThreadSafeClientConnManager(schemeRegistry);
+			HttpParams params = new BasicHttpParams();
 
-			httpclient = new DefaultHttpClient(mgr, httpParams);
+			HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
+			HttpProtocolParams.setContentCharset(params, HTTP.DEFAULT_CONTENT_CHARSET);
+			HttpProtocolParams.setUseExpectContinue(params, true);
+
+			// 设置连接管理器的超时
+			ConnManagerParams.setTimeout(params, 10000);
+			// 设置连接超时
+			HttpConnectionParams.setConnectionTimeout(params, 10000);
+			// 设置socket超时
+			HttpConnectionParams.setSoTimeout(params, 10000);
+
+			// 设置http https支持
+			SchemeRegistry schReg = new SchemeRegistry();
+			schReg.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+			schReg.register(new Scheme("https", sf, port));
+
+			ClientConnectionManager conManager = new ThreadSafeClientConnManager(params, schReg);
+
+			httpclient = new DefaultHttpClient(conManager, params);
 
 		} catch (Exception ex) {
 
@@ -255,6 +263,45 @@ public class RestConnectedService implements IHttpConnectedService {
 		}
 
 		return httpclient;
+	}
+
+	private class SSLSocketFactoryEx extends SSLSocketFactory {
+
+		SSLContext sslContext = SSLContext.getInstance("TLS");
+
+		public SSLSocketFactoryEx(KeyStore truststore) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
+			super(truststore);
+
+			TrustManager tm = new X509TrustManager() {
+
+				@Override
+				public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+					return null;
+				}
+
+				@Override
+				public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws java.security.cert.CertificateException {
+
+				}
+
+				@Override
+				public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws java.security.cert.CertificateException {
+
+				}
+			};
+
+			sslContext.init(null, new TrustManager[] { tm }, null);
+		}
+
+		@Override
+		public Socket createSocket(Socket socket, String host, int port, boolean autoClose) throws IOException, UnknownHostException {
+			return sslContext.getSocketFactory().createSocket(socket, host, port, autoClose);
+		}
+
+		@Override
+		public Socket createSocket() throws IOException {
+			return sslContext.getSocketFactory().createSocket();
+		}
 	}
 
 	@Override
@@ -272,9 +319,41 @@ public class RestConnectedService implements IHttpConnectedService {
 			URL url = new URL(sURL);
 
 			if (isSSL) {
-				javax.net.ssl.SSLSocketFactory sslsocketfactory = createEasySSLContext(keystorePath, keystorePass).getSocketFactory();
-				URLConn = (HttpsURLConnection) url.openConnection();
-				((HttpsURLConnection) URLConn).setSSLSocketFactory(sslsocketfactory);
+
+				// Load CAs from an InputStream
+				// (could be from a resource or ByteArrayInputStream or ...)
+				CertificateFactory cf = CertificateFactory.getInstance("X.509");
+				// From
+				// https://www.washington.edu/itconnect/security/ca/load-der.crt
+				InputStream caInput = new BufferedInputStream(new FileInputStream("load-der.crt"));
+				Certificate ca;
+				try {
+					ca = cf.generateCertificate(caInput);
+					System.out.println("ca=" + ((X509Certificate) ca).getSubjectDN());
+				} finally {
+					caInput.close();
+				}
+
+				// Create a KeyStore containing our trusted CAs
+				String keyStoreType = KeyStore.getDefaultType();
+				KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+				keyStore.load(null, null);
+				keyStore.setCertificateEntry("ca", ca);
+
+				// Create a TrustManager that trusts the CAs in our KeyStore
+				String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+				TrustManagerFactory tmf = TrustManagerFactory.getInstance(tmfAlgorithm);
+				tmf.init(keyStore);
+
+				// Create an SSLContext that uses our TrustManager
+				SSLContext context = SSLContext.getInstance("TLS");
+				context.init(null, tmf.getTrustManagers(), null);
+
+				// Tell the URLConnection to use a SocketFactory from our
+				// SSLContext
+				HttpsURLConnection urlConnection = (HttpsURLConnection) url.openConnection();
+				urlConnection.setSSLSocketFactory(context.getSocketFactory());
+
 			} else {
 				URLConn = (HttpURLConnection) url.openConnection();
 			}
@@ -376,47 +455,10 @@ public class RestConnectedService implements IHttpConnectedService {
 		return sb.toString();
 	}
 
-	protected SSLContext createEasySSLContext(String keystorePath, String keystorePass) throws Exception {
-		try {
-
-			// set ssl env
-			System.setProperty("java.protocol.handler.pkgs", "com.sun.net.ssl.internal.www.protocol");
-			Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
-
-			// read .keystore file
-			InputStream in = new FileInputStream(new File(keystorePath));
-
-			KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-			try {
-				ks.load(in, keystorePass.toCharArray());
-			} finally {
-				try {
-					in.close();
-				} catch (Exception ignore) {
-				}
-			}
-
-			// set ssl cert in url connection
-			TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-			tmf.init(ks);
-			X509TrustManager defaultTrustManager = (X509TrustManager) tmf.getTrustManagers()[0];
-
-			SSLContext context = SSLContext.getInstance("SSL");
-
-			context.init(null, new TrustManager[] { defaultTrustManager }, null);
-
-			return context;
-		} catch (Exception e) {
-			Log.e(this.getClass().getSimpleName(), "create ssl context error!");
-			throw new Exception(e);
-		}
-
-	}
-
 	@Override
 	public boolean shutdown() throws Exception {
-		if (httpclient != null) {
-			httpclient.getConnectionManager().shutdown();
+		if (httpClient != null) {
+			httpClient.getConnectionManager().shutdown();
 
 		}
 

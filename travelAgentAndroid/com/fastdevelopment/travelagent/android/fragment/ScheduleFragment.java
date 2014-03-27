@@ -1,12 +1,22 @@
 package com.fastdevelopment.travelagent.android.fragment;
 
+import java.net.URLEncoder;
+
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.json.JSONObject;
+
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.fastdevelopment.travelagent.android.R;
+import com.fastdevelopment.travelagent.android.common.IHttpConnectedService;
+import com.fastdevelopment.travelagent.android.common.RestConnectedService;
 import com.google.android.gms.maps.GoogleMap;
 
 public class ScheduleFragment extends Fragment {
@@ -17,13 +27,65 @@ public class ScheduleFragment extends Fragment {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View v = inflater.inflate(R.layout.fragment_schedule, container, false);
 
-		// map = ((SupportMapFragment)
-		// getFragmentManager().findFragmentById(R.id.support_map_fragment)).getMap();
-		String directionUrl = "http://maps.googleapis.com/maps/api/directions/json?origin=Chicago,IL&destination=Los+Angeles,CA&waypoints=Joplin,MO|Oklahoma+City,OK&sensor=false&key=%s";
-		String googleMapApiKey = getResources().getString(R.string.google_map_api_v2_api_key);
-		String.format(directionUrl, googleMapApiKey);
-		
+		new Thread(httpRequestRunner).start();
+
 		return v;
 	}
+
+	Handler httpResponseHandler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			super.handleMessage(msg);
+			Bundle data = msg.getData();
+			String val = data.getString("value");
+			Log.i("mylog", "请求结果-->" + val);
+		}
+	};
+
+	Runnable httpRequestRunner = new Runnable() {
+		@Override
+		public void run() {
+			//
+			// http request.
+			//
+			// map = ((SupportMapFragment)
+			// getFragmentManager().findFragmentById(R.id.support_map_fragment)).getMap();
+			String googleApisServerKey = getResources().getString(R.string.google_apis_server_key);
+
+			StringBuffer url = new StringBuffer();
+			try {
+				url.append("https://maps.googleapis.com/maps/api/directions/json?");
+				url.append("origin=");
+				url.append(URLEncoder.encode("Chicago,IL", "UTF-8"));
+				url.append("&destination=");
+				url.append(URLEncoder.encode("Los+Angeles,CA", "UTF-8"));
+				url.append("&waypoints=");
+				url.append(URLEncoder.encode("Joplin,MO|Oklahoma+City,OK", "UTF-8"));
+				url.append("&sensor=");
+				url.append(URLEncoder.encode("false", "UTF-8"));
+				url.append("&key=");
+				url.append(URLEncoder.encode(googleApisServerKey, "UTF-8"));
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			IHttpConnectedService httpService = new RestConnectedService();
+			try {
+				httpService.initHttpClient(443);
+				String jsonStr = httpService.doGetByHttpClientAndReturnJsonStr(url.toString());
+				if (jsonStr != null) {
+					JSONObject json = new JSONObject(jsonStr);
+				}
+			} catch (Exception e) {
+				Log.e(this.getClass().getSimpleName(), ExceptionUtils.getStackTrace(e));
+			}
+
+			Message msg = new Message();
+			Bundle data = new Bundle();
+			data.putString("value", "请求结果");
+			msg.setData(data);
+			httpResponseHandler.sendMessage(msg);
+		}
+	};
 
 }
