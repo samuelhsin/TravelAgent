@@ -1,8 +1,10 @@
 package com.fastdevelopment.travelagent.android.fragment;
 
 import java.net.URLEncoder;
+
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.json.JSONObject;
+
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,10 +14,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.factual.driver.Factual;
+import com.factual.driver.Query;
 import com.fastdevelopment.travelagent.android.R;
 import com.fastdevelopment.travelagent.android.common.IHttpConnectedService;
 import com.fastdevelopment.travelagent.android.common.RestConnectedService;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.api.client.auth.oauth.OAuthHmacSigner;
 
 public class ScheduleFragment extends Fragment {
 
@@ -49,8 +55,22 @@ public class ScheduleFragment extends Fragment {
 			//
 			// map = ((SupportMapFragment)
 			// getFragmentManager().findFragmentById(R.id.support_map_fragment)).getMap();
+			
+			
+			
+			// Create an authenticated handle to Factual
+			Factual factual = new Factual("7yBtAv0khO2jUxvs9PjR3peCzSPZorUZaZQsmIDA", "W2KImgXXxvPGxWIfKls3kwWAlBqoqf3yOHIiXvuk");
+			
+			// Print 3 random records from Factual's Places table:
+			System.out.println(
+			  factual.fetch("places", new Query().limit(3)));
+			
+			
+			
 			String googleApisServerKey = getResources().getString(R.string.google_apis_server_key);
 
+			OAuthHmacSigner a;
+			
 			StringBuffer url = new StringBuffer();
 			try {
 				
