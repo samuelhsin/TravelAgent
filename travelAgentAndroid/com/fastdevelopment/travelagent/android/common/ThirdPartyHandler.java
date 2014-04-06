@@ -30,7 +30,17 @@ public class ThirdPartyHandler {
 		ThirdPartyHandlerWorkObject work = new ThirdPartyHandlerWorkObject() {
 			@Override
 			public void toDo() throws Exception {
-				getDistanceTime(httpResponseHandler);
+
+				FactualQuery factualQuery = querySpotsToFactualApi();
+
+				GoogleDistanceMetrix googleDistanceMetrix = queryDistanceMetrixToGoogleApi(factualQuery);
+
+				Message msg = new Message();
+				Bundle data = new Bundle();
+				data.putString("result", "result");
+				msg.setData(data);
+				httpResponseHandler.sendMessage(msg);
+
 			}
 		};
 
@@ -40,7 +50,7 @@ public class ThirdPartyHandler {
 
 	}
 
-	protected void getDirection(String googleApisServerKey, Handler httpResponseHandler) throws Exception {
+	protected JSONObject queryDirectionsToGoogleApi(String googleApisServerKey, Handler httpResponseHandler) throws Exception {
 		//
 		// http request.
 		//
@@ -70,25 +80,22 @@ public class ThirdPartyHandler {
 		}
 
 		IHttpConnectedService httpService = new RestConnectedService();
+		JSONObject json = null;
 		try {
 			httpService.initHttpClient(443);
 			String jsonStr = httpService.doGetByHttpClientAndReturnJsonStr(url.toString());
 			if (jsonStr != null) {
-				JSONObject json = new JSONObject(jsonStr);
+				json = new JSONObject(jsonStr);
 			}
 		} catch (Exception e) {
 			Log.e(this.getClass().getSimpleName(), ExceptionUtils.getStackTrace(e));
 		}
 
-		Message msg = new Message();
-		Bundle data = new Bundle();
-		data.putString("value", "请求结果");
-		msg.setData(data);
-		httpResponseHandler.sendMessage(msg);
+		return json;
 
 	}
 
-	protected void getDistanceTime(Handler httpResponseHandler) throws Exception {
+	protected FactualQuery querySpotsToFactualApi() throws Exception {
 		//
 		// http request.
 		//
@@ -107,6 +114,15 @@ public class ThirdPartyHandler {
 		} catch (Exception e) {
 			Log.e(this.getClass().getSimpleName(), ExceptionUtils.getStackTrace(e));
 		}
+
+		return factualQuery;
+
+	}
+
+	protected GoogleDistanceMetrix queryDistanceMetrixToGoogleApi(FactualQuery factualQuery) throws Exception {
+		//
+		// http request.
+		//
 
 		StringBuffer url = new StringBuffer();
 		try {
@@ -146,11 +162,8 @@ public class ThirdPartyHandler {
 			Log.e(this.getClass().getSimpleName(), ExceptionUtils.getStackTrace(e));
 		}
 
-		Message msg = new Message();
-		Bundle data = new Bundle();
-		data.putString("result", json.toString());
-		msg.setData(data);
-		httpResponseHandler.sendMessage(msg);
+		return googleDistanceMetrix;
+
 	}
 
 	// **************************************************************************
