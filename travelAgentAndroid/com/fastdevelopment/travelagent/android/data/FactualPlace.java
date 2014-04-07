@@ -8,11 +8,16 @@ import com.fastdevelopment.travelagent.android.json2pojo.JsonObject;
 
 public class FactualPlace extends JsonObject implements IPojoData {
 
+	// schema: http://www.factual.com/data/t/places/schema
+
 	@JsonDataMethodAnnotation
 	String address;
 
 	@JsonDataMethodAnnotation
 	String address_extended;
+
+	@JsonDataMethodAnnotation
+	String admin_region;
 
 	@JsonDataMethodAnnotation
 	List<Integer> category_ids;
@@ -48,10 +53,22 @@ public class FactualPlace extends JsonObject implements IPojoData {
 	String name;
 
 	@JsonDataMethodAnnotation
+	String chain_name;
+
+	@JsonDataMethodAnnotation
+	String chain_id;
+
+	@JsonDataMethodAnnotation
 	List<String> neighborhood;
 
 	@JsonDataMethodAnnotation
 	String postcode;
+
+	@JsonDataMethodAnnotation
+	String post_town;
+
+	@JsonDataMethodAnnotation
+	String po_box;
 
 	@JsonDataMethodAnnotation
 	String region;
@@ -215,6 +232,46 @@ public class FactualPlace extends JsonObject implements IPojoData {
 
 	public void setWebsite(String website) {
 		this.website = website;
+	}
+
+	public String getAdmin_region() {
+		return admin_region;
+	}
+
+	public void setAdmin_region(String admin_region) {
+		this.admin_region = admin_region;
+	}
+
+	public String getChain_name() {
+		return chain_name;
+	}
+
+	public void setChain_name(String chain_name) {
+		this.chain_name = chain_name;
+	}
+
+	public String getChain_id() {
+		return chain_id;
+	}
+
+	public void setChain_id(String chain_id) {
+		this.chain_id = chain_id;
+	}
+
+	public String getPost_town() {
+		return post_town;
+	}
+
+	public void setPost_town(String post_town) {
+		this.post_town = post_town;
+	}
+
+	public String getPo_box() {
+		return po_box;
+	}
+
+	public void setPo_box(String po_box) {
+		this.po_box = po_box;
 	}
 
 }

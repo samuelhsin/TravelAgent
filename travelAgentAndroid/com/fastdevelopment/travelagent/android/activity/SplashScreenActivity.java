@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 
 import com.fastdevelopment.travelagent.android.R;
+import com.fastdevelopment.travelagent.android.common.ServerConfig;
 import com.fastdevelopment.travelagent.android.orm.DatabaseHelper;
 import com.fastdevelopment.travelagent.android.orm.model.User;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
@@ -30,6 +31,9 @@ public class SplashScreenActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_splash);
 
+		// init ServerConfig
+		ServerConfig.init(getResources());
+
 		mSplashThread = new Thread() {
 			@Override
 			public void run() {
@@ -39,7 +43,6 @@ public class SplashScreenActivity extends Activity {
 						sleep(100);
 						waited += 100;
 					}
-
 				} catch (Exception e) {
 					// do nothing
 				} finally {
