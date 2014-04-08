@@ -32,15 +32,15 @@ public class ThirdPartyHandler {
 	private static final Vector<ThirdPartyHandlerThread> workers = new Vector<ThirdPartyHandlerThread>();
 	private static final Json2PojoParser parser = new Json2PojoParser();
 
-	public boolean invokeDistanceTimeEvent(final Handler httpResponseHandler) throws Exception {
+	public boolean invokeDistanceTimeEvent(final Handler httpResponseHandler, final String countryCode) throws Exception {
 
 		ThirdPartyHandlerWorkObject work = new ThirdPartyHandlerWorkObject() {
 			@Override
 			public void toDo() throws Exception {
 
-				FactualQuery factualQuery = querySpotsToFactualApi();
+				FactualQuery factualQuery = querySpotsToFactualApi(countryCode);
 
-				FactualQuery factualQuery2 = querySpotsToFactualApi();
+				FactualQuery factualQuery2 = querySpotsToFactualApi(countryCode);
 
 				GoogleDistanceMetrix googleDistanceMetrix = queryDistanceMetrixToGoogleApi(factualQuery, factualQuery2);
 
@@ -59,7 +59,7 @@ public class ThirdPartyHandler {
 
 	}
 
-	protected FactualQuery querySpotsToFactualApi() throws Exception {
+	protected FactualQuery querySpotsToFactualApi(String countryCode) throws Exception {
 		//
 		// http request.
 		//
@@ -71,7 +71,7 @@ public class ThirdPartyHandler {
 		// String jsonStrResponse = factual.fetch(IFactualTableName.PLACES, new Query().limit(2)).getJson();
 
 		Query q = new Query();
-		q.and(q.field("name").beginsWith("Coffee"), q.field("tel").blank()).limit(3);
+		q.and(q.field("country").isEqual(countryCode)).limit(3);
 		String jsonStrResponse = factual.fetch(IFactualTableName.PLACES, q).getJson();
 
 		FactualQuery factualQuery = new FactualQuery();
