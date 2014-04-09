@@ -2,6 +2,8 @@ package com.fastdevelopment.travelagent.android.fragment;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
@@ -14,6 +16,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 
 import com.fastdevelopment.travelagent.android.R;
@@ -22,20 +27,27 @@ import com.google.android.gms.maps.GoogleMap;
 
 public class ScheduleFragment extends Fragment {
 
+	private ProgressBar progressBar;
 	private GoogleMap map;
 	private Handler httpResponseHandler;
 	private Context context = this.getActivity();
+	private View thisView;
+	private LinearLayout thisLinearLayout;
+	private int shortAnimationDuration = 1000;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		View v = inflater.inflate(R.layout.fragment_schedule, container, false);
+		thisView = inflater.inflate(R.layout.fragment_schedule, container, false);
 
 		// map = ((SupportMapFragment) getFragmentManager().findFragmentById(R.id.support_map_fragment)).getMap();
 
 		// init message handler
 		initMessageHandler();
-
-		Spinner spinner = (Spinner) v.findViewById(R.id.spinner_where);
+		
+		thisLinearLayout = (LinearLayout) thisView.findViewById(R.id.llt_fragment_schedule);
+		final Spinner spinner = (Spinner) thisView.findViewById(R.id.spinner_where);
+		progressBar = (ProgressBar) thisView.findViewById(R.id.progressBar_in_fragment_schedule);
+		progressBar.setVisibility(View.GONE);
 
 		// 建立一個ArrayAdapter物件，並放置下拉選單的內容
 		String[] values = { "Select Country", "Taiwan", "France", "United States" };
@@ -49,15 +61,28 @@ public class ScheduleFragment extends Fragment {
 		spinner.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
 			public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
 				// Toast.makeText(context, "您選擇" + adapterView.getSelectedItem().toString(), Toast.LENGTH_LONG).show();
+			}
 
-				String selected = adapterView.getSelectedItem().toString();
+			public void onNothingSelected(AdapterView<?> arg0) {
+				// Toast.makeText(context, "您沒有選擇任何項目", Toast.LENGTH_LONG).show();
+			}
+		});
 
-				if (!selected.equals("Select Country")) {
+		Button btnSchedule = (Button) thisView.findViewById(R.id.btn_schedule);
 
+		btnSchedule.setOnClickListener(new Button.OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+
+				String selectedCountry = (String) spinner.getSelectedItem();
+
+				if (!selectedCountry.equals("Select Country")) {
+					load(true);
 					String countryCode = "tw";
-					if (selected.equals("France")) {
+					if (selectedCountry.equals("France")) {
 						countryCode = "fr";
-					} else if (selected.equals("United States")) {
+					} else if (selectedCountry.equals("United States")) {
 						countryCode = "us";
 					}
 
@@ -71,13 +96,46 @@ public class ScheduleFragment extends Fragment {
 
 			}
 
-			public void onNothingSelected(AdapterView<?> arg0) {
-				// Toast.makeText(context, "您沒有選擇任何項目", Toast.LENGTH_LONG).show();
-			}
 		});
 
-		return v;
+		return thisView;
 	};
+
+	protected void load(boolean isLoad) {
+
+		if (isLoad) {
+			fade(false, this.thisLinearLayout);
+			fade(true, this.progressBar);
+		} else {
+			fade(false, this.progressBar);
+			fade(true, this.thisLinearLayout);
+		}
+
+	}
+
+	protected void fade(boolean in, final View v) {
+		if (in) {
+			// Set the content view to 0% opacity but visible, so that it is visible
+			// (but fully transparent) during the animation.
+			v.setAlpha(0f);
+			v.setVisibility(View.VISIBLE);
+
+			// Animate the content view to 100% opacity, and clear any animation
+			// listener set on the view.
+			v.animate().alpha(1f).setDuration(shortAnimationDuration).setListener(null);
+
+		} else {
+			// Animate the loading view to 0% opacity. After the animation ends,
+			// set its visibility to GONE as an optimization step (it won't
+			// participate in layout passes, etc.)
+			v.animate().alpha(0f).setDuration(shortAnimationDuration).setListener(new AnimatorListenerAdapter() {
+				@Override
+				public void onAnimationEnd(Animator animation) {
+					v.setVisibility(View.GONE);
+				}
+			});
+		}
+	}
 
 	@SuppressLint("HandlerLeak")
 	protected void initMessageHandler() {
@@ -88,6 +146,7 @@ public class ScheduleFragment extends Fragment {
 				Bundle data = msg.getData();
 				String val = data.getString("result");
 				Log.i("mylog", "请求结果-->" + val);
+				load(false);
 			}
 		};
 	}
