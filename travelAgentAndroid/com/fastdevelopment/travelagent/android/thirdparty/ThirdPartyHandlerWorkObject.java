@@ -1,4 +1,4 @@
-package com.fastdevelopment.travelagent.android.common;
+package com.fastdevelopment.travelagent.android.thirdparty;
 
 public class ThirdPartyHandlerWorkObject {
 	// to be override

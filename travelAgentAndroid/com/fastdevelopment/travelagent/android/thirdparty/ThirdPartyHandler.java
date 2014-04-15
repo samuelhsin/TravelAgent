@@ -1,4 +1,4 @@
-package com.fastdevelopment.travelagent.android.common;
+package com.fastdevelopment.travelagent.android.thirdparty;
 
 import java.net.URLEncoder;
 import java.util.Iterator;
@@ -16,14 +16,23 @@ import android.util.Log;
 import com.factual.driver.Factual;
 import com.factual.driver.Query;
 import com.fastdevelopment.travelagent.android.R;
+import com.fastdevelopment.travelagent.android.common.BundleDataFactory;
+import com.fastdevelopment.travelagent.android.common.IHttpConnectedService;
+import com.fastdevelopment.travelagent.android.common.Request;
+import com.fastdevelopment.travelagent.android.common.RequestQueue;
+import com.fastdevelopment.travelagent.android.common.RestConnectedService;
+import com.fastdevelopment.travelagent.android.common.ServerConfig;
+import com.fastdevelopment.travelagent.android.common.ServerConstants.CountryCode;
 import com.fastdevelopment.travelagent.android.common.ServerConstants.Encode;
 import com.fastdevelopment.travelagent.android.common.ServerConstants.GoogleDistanceMetrixMode;
 import com.fastdevelopment.travelagent.android.common.ServerConstants.IFactualTableName;
-import com.fastdevelopment.travelagent.android.common.ServerConstants.Locale;
-import com.fastdevelopment.travelagent.android.data.FactualPlace;
-import com.fastdevelopment.travelagent.android.data.FactualQuery;
-import com.fastdevelopment.travelagent.android.data.GoogleDistanceMetrix;
+import com.fastdevelopment.travelagent.android.common.ServerConstants.IGoogleDirectionApiConst;
+import com.fastdevelopment.travelagent.android.common.ServerConstants.IGoogleDistanceMetrixApiConst;
+import com.fastdevelopment.travelagent.android.common.ServerConstants.IJson2PojoConst;
 import com.fastdevelopment.travelagent.android.json2pojo.Json2PojoParser;
+import com.fastdevelopment.travelagent.android.thirdparty.data.FactualPlace;
+import com.fastdevelopment.travelagent.android.thirdparty.data.FactualQuery;
+import com.fastdevelopment.travelagent.android.thirdparty.data.GoogleDistanceMetrix;
 
 public class ThirdPartyHandler {
 
@@ -32,7 +41,7 @@ public class ThirdPartyHandler {
 	private static final Vector<ThirdPartyHandlerThread> workers = new Vector<ThirdPartyHandlerThread>();
 	private static final Json2PojoParser parser = new Json2PojoParser();
 
-	public boolean invokeDistanceTimeEvent(final Handler httpResponseHandler, final String countryCode) throws Exception {
+	public boolean invokeDistanceTimeEvent(final Handler httpResponseHandler, final CountryCode countryCode) throws Exception {
 
 		ThirdPartyHandlerWorkObject work = new ThirdPartyHandlerWorkObject() {
 			@Override
@@ -45,8 +54,7 @@ public class ThirdPartyHandler {
 				GoogleDistanceMetrix googleDistanceMetrix = queryDistanceMetrixToGoogleApi(factualQuery, factualQuery2);
 
 				Message msg = new Message();
-				Bundle data = new Bundle();
-				data.putString("result", "result");
+				Bundle data = BundleDataFactory.createBundleData(googleDistanceMetrix);
 				msg.setData(data);
 				httpResponseHandler.sendMessage(msg);
 
@@ -59,7 +67,7 @@ public class ThirdPartyHandler {
 
 	}
 
-	protected FactualQuery querySpotsToFactualApi(String countryCode) throws Exception {
+	protected FactualQuery querySpotsToFactualApi(CountryCode countryCode) throws Exception {
 		//
 		// http request.
 		//
@@ -71,14 +79,14 @@ public class ThirdPartyHandler {
 		// String jsonStrResponse = factual.fetch(IFactualTableName.PLACES, new Query().limit(2)).getJson();
 
 		Query q = new Query();
-		q.and(q.field("country").isEqual(countryCode)).limit(3);
+		q.and(q.field(IFactualTableName.COUNTRY).isEqual(countryCode.toString())).limit(3);
 		String jsonStrResponse = factual.fetch(IFactualTableName.PLACES, q).getJson();
 
 		FactualQuery factualQuery = new FactualQuery();
 		try {
 			JSONObject jsonResponse = new JSONObject(jsonStrResponse);
 
-			parser.parsingJsonValueToPojo("com.fastdevelopment.travelagent.android.data", jsonResponse, factualQuery);
+			parser.parsingJsonValueToPojo(IJson2PojoConst.JSON2POJO_DATA_PACKAGE, jsonResponse, factualQuery);
 
 		} catch (Exception e) {
 			Log.e(this.getClass().getSimpleName(), ExceptionUtils.getStackTrace(e));
@@ -117,16 +125,26 @@ public class ThirdPartyHandler {
 			}
 
 			// google distance matrix api : (for distance time)
-			url.append("http://maps.googleapis.com/maps/api/distancematrix/json?");
-			url.append("origins=");
+			url.append(IGoogleDistanceMetrixApiConst.JSON_URL);
+			url.append("?");
+			url.append(IGoogleDistanceMetrixApiConst.PARAM_ORIGINS);
+			url.append("=");
 			url.append(URLEncoder.encode(originSpot.toString(), Encode.UTF_8.toString()));
-			url.append("&destinations=");
+			url.append("&");
+			url.append(IGoogleDistanceMetrixApiConst.PARAM_DESTINATIONS);
+			url.append("=");
 			url.append(URLEncoder.encode(destinationSpot.toString(), Encode.UTF_8.toString()));
-			url.append("&mode=");
+			url.append("&");
+			url.append(IGoogleDistanceMetrixApiConst.PARAM_MODE);
+			url.append("=");
 			url.append(URLEncoder.encode(GoogleDistanceMetrixMode.BICYCLING.toString(), Encode.UTF_8.toString()));
-			url.append("&language=");
-			url.append(URLEncoder.encode(Locale.EN_US.toString(), Encode.UTF_8.toString()));
-			url.append("&sensor=");
+			url.append("&");
+			url.append(IGoogleDistanceMetrixApiConst.PARAM_LANGUAGE);
+			url.append("=");
+			url.append(URLEncoder.encode(ServerConfig.resource.getConfiguration().locale.toString(), Encode.UTF_8.toString()));
+			url.append("&");
+			url.append(IGoogleDistanceMetrixApiConst.PARAM_SENOR);
+			url.append("=");
 			url.append(URLEncoder.encode("false", Encode.UTF_8.toString()));
 
 		} catch (Exception e) {
@@ -140,7 +158,7 @@ public class ThirdPartyHandler {
 			String jsonStr = httpService.doGetByHttpClientAndReturnJsonStr(url.toString());
 			if (jsonStr != null) {
 				json = new JSONObject(jsonStr);
-				parser.parsingJsonValueToPojo("com.fastdevelopment.travelagent.android.data", json, googleDistanceMetrix);
+				parser.parsingJsonValueToPojo(IJson2PojoConst.JSON2POJO_DATA_PACKAGE, json, googleDistanceMetrix);
 			}
 		} catch (Exception e) {
 			Log.e(this.getClass().getSimpleName(), ExceptionUtils.getStackTrace(e));
@@ -162,18 +180,30 @@ public class ThirdPartyHandler {
 		StringBuffer url = new StringBuffer();
 		try {
 			// google direction api : (for navi)
-			url.append("https://maps.googleapis.com/maps/api/directions/json?");
-			url.append("origin=");
+			url.append(IGoogleDirectionApiConst.JSON_URL);
+			url.append("?");
+			url.append(IGoogleDirectionApiConst.PARAM_ORIGIN);
+			url.append("=");
 			url.append(URLEncoder.encode("Chicago,IL", Encode.UTF_8.toString()));
-			url.append("&destination=");
+			url.append("&");
+			url.append(IGoogleDirectionApiConst.PARAM_DESTINATION);
+			url.append("=");
 			url.append(URLEncoder.encode("Los+Angeles,CA", Encode.UTF_8.toString()));
-			url.append("&waypoints=");
+			url.append("&");
+			url.append(IGoogleDirectionApiConst.PARAM_WAYPOINTS);
+			url.append("=");
 			url.append(URLEncoder.encode("Joplin,MO|Oklahoma+City,OK", Encode.UTF_8.toString()));
-			url.append("&mode=");
+			url.append("&");
+			url.append(IGoogleDirectionApiConst.PARAM_MODE);
+			url.append("=");
 			url.append(GoogleDistanceMetrixMode.WALKING);
-			url.append("&sensor=");
+			url.append("&");
+			url.append(IGoogleDirectionApiConst.PARAM_SENOR);
+			url.append("=");
 			url.append(URLEncoder.encode("false", Encode.UTF_8.toString()));
-			url.append("&key=");
+			url.append("&");
+			url.append(IGoogleDirectionApiConst.PARAM_KEY);
+			url.append("=");
 			url.append(URLEncoder.encode(googleApisServerKey, Encode.UTF_8.toString()));
 		} catch (Exception e) {
 			Log.e(this.getClass().getSimpleName(), ExceptionUtils.getStackTrace(e));

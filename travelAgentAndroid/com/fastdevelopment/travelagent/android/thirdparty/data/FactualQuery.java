@@ -1,10 +1,14 @@
-package com.fastdevelopment.travelagent.android.data;
+package com.fastdevelopment.travelagent.android.thirdparty.data;
 
-import com.fastdevelopment.travelagent.android.json2pojo.IPojoData;
 import com.fastdevelopment.travelagent.android.json2pojo.JsonDataMethodAnnotation;
 import com.fastdevelopment.travelagent.android.json2pojo.JsonObject;
 
-public class FactualQuery extends JsonObject implements IPojoData {
+public class FactualQuery extends JsonObject {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6570402944354738303L;
 
 	@JsonDataMethodAnnotation
 	Integer version;

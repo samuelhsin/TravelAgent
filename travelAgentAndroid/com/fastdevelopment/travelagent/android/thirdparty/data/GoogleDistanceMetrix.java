@@ -1,12 +1,16 @@
-package com.fastdevelopment.travelagent.android.data;
+package com.fastdevelopment.travelagent.android.thirdparty.data;
 
 import java.util.List;
 
-import com.fastdevelopment.travelagent.android.json2pojo.IPojoData;
 import com.fastdevelopment.travelagent.android.json2pojo.JsonDataMethodAnnotation;
 import com.fastdevelopment.travelagent.android.json2pojo.JsonObject;
 
-public class GoogleDistanceMetrix extends JsonObject implements IPojoData {
+public class GoogleDistanceMetrix extends JsonObject {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -422979959581538915L;
 
 	@JsonDataMethodAnnotation
 	List<String> destination_addresses;
@@ -17,6 +21,9 @@ public class GoogleDistanceMetrix extends JsonObject implements IPojoData {
 	@JsonDataMethodAnnotation
 	List<GoogleDistance> rows;
 
+	/**
+	 * OK
+	 */
 	@JsonDataMethodAnnotation
 	String status;
 

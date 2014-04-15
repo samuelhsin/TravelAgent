@@ -1,4 +1,6 @@
 package com.fastdevelopment.travelagent.android.json2pojo;
 
-public interface IPojoData extends Comparable<IPojoData> {
+import java.io.Serializable;
+
+public interface IPojoData extends Comparable<IPojoData>, Serializable {
 }

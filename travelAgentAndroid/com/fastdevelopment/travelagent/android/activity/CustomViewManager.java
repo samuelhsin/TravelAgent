@@ -3,6 +3,7 @@ package com.fastdevelopment.travelagent.android.activity;
 import com.fastdevelopment.travelagent.android.R;
 import com.fastdevelopment.travelagent.android.R.id;
 import com.fastdevelopment.travelagent.android.R.layout;
+import com.fastdevelopment.travelagent.android.component.CusViewPager;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -16,7 +17,7 @@ import android.widget.TextView;
 public class CustomViewManager {
 	private Context context;
 	private LinearLayout llCustomTabView, llTab;
-	private ViewPager viewPager;
+	private CusViewPager viewPager;
 	private String[] tags;
 
 	public CustomViewManager(Context context, String[] tags) {
@@ -26,7 +27,7 @@ public class CustomViewManager {
 		llCustomTabView = (LinearLayout) LayoutInflater.from(context).inflate(R.layout.layout_custom_tab_view, null);
 		// 拿到存放TAB的布局
 		llTab = (LinearLayout) llCustomTabView.findViewById(R.id.llTab);
-		viewPager = (ViewPager) llCustomTabView.findViewById(R.id.pager);
+		viewPager = (CusViewPager) llCustomTabView.findViewById(R.id.pager);
 
 		createCustomView();
 	}
