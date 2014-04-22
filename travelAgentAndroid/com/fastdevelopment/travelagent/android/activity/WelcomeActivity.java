@@ -1,10 +1,5 @@
 package com.fastdevelopment.travelagent.android.activity;
 
-import com.fastdevelopment.travelagent.android.R;
-import com.fastdevelopment.travelagent.android.R.drawable;
-import com.fastdevelopment.travelagent.android.R.id;
-import com.fastdevelopment.travelagent.android.R.layout;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -19,6 +14,8 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+
+import com.fastdevelopment.travelagent.android.R;
 
 public class WelcomeActivity extends Activity implements OnPageChangeListener {
 

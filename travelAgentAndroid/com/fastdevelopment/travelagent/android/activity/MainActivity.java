@@ -48,7 +48,8 @@ public class MainActivity extends FragmentActivity {
 		fragmentsList.add(new NewsFragment());
 		fragmentsList.add(new SettingsFragment());
 
-		tags = new String[] { "Schedule", "Plans", "News", "Settings" };
+		tags = new String[] { this.getResources().getString(R.string.schedule), this.getResources().getString(R.string.plan), this.getResources().getString(R.string.news),
+				this.getResources().getString(R.string.settings) };
 
 	}
 

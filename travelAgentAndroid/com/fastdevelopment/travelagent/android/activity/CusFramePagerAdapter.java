@@ -6,18 +6,19 @@ import android.graphics.Color;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.LinearLayout;
 
-public class PagerAdapter extends FragmentPagerAdapter implements OnPageChangeListener, OnClickListener {
+import com.fastdevelopment.travelagent.android.component.CusViewPager;
+
+public class CusFramePagerAdapter extends FragmentPagerAdapter implements OnPageChangeListener, OnClickListener {
 	private List<Fragment> fragmentsList;
-	private ViewPager viewPager;
+	private CusViewPager viewPager;
 	private LinearLayout llTab;
 
-	public PagerAdapter(FragmentManager fm, List<Fragment> fragments, ViewPager viewPager, LinearLayout llTab) {
+	public CusFramePagerAdapter(FragmentManager fm, List<Fragment> fragments, CusViewPager viewPager, LinearLayout llTab) {
 		super(fm);
 		this.fragmentsList = fragments;
 		this.viewPager = viewPager;
@@ -47,6 +48,8 @@ public class PagerAdapter extends FragmentPagerAdapter implements OnPageChangeLi
 		return fragmentsList.size();
 	}
 
+	
+	
 	// ******************OnPageChangeListener***************
 	@Override
 	public void onPageScrollStateChanged(int state) {
@@ -70,7 +73,7 @@ public class PagerAdapter extends FragmentPagerAdapter implements OnPageChangeLi
 		}
 	}
 
-	// ******************OnPageChangeListener***************
+	// ******************OnClickListener***************
 
 	@Override
 	public void onClick(View view) {
@@ -83,4 +86,5 @@ public class PagerAdapter extends FragmentPagerAdapter implements OnPageChangeLi
 			}
 		}
 	}
+
 }

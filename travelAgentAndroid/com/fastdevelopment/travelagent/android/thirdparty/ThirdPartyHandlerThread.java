@@ -1,6 +1,9 @@
-package com.fastdevelopment.travelagent.android.common;
+package com.fastdevelopment.travelagent.android.thirdparty;
 
 import java.text.DecimalFormat;
+
+import com.fastdevelopment.travelagent.android.common.Request;
+import com.fastdevelopment.travelagent.android.common.RequestQueue;
 
 import android.util.Log;
 
