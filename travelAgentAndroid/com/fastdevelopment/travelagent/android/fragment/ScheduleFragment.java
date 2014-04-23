@@ -14,14 +14,16 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
@@ -186,11 +188,28 @@ public class ScheduleFragment extends Fragment {
 		ScheduleGridAdapter adapter = new ScheduleGridAdapter(this.context, modelList);
 		scheduleGridView.setAdapter(adapter);
 
-		ImageView trashCan = (ImageView) scheduleView.findViewById(R.id.trash_can);
-
-		scheduleGridView.setTrashCan(trashCan);
-
 		wholeView.addView(scheduleView, 0);
+
+		// register context menu (long touch grid item)
+		this.registerForContextMenu(scheduleGridView);
+
+	}
+
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		// 當使用者點選項目時，所需的動作
+		Toast.makeText(this.context, "您選擇的是" + item.getTitle(), Toast.LENGTH_SHORT).show();
+		return super.onContextItemSelected(item);
+	}
+
+	@Override
+	public void onCreateContextMenu(ContextMenu contextMenu, View view, ContextMenuInfo menuInfo) {
+		// 設定選單內容
+		super.onCreateContextMenu(contextMenu, view, menuInfo);
+		contextMenu.add(0, 0, 0, "紅茶");
+		contextMenu.add(0, 1, 0, "奶茶");
+		contextMenu.add(0, 2, 0, "綠茶");
+		contextMenu.add(0, 3, 0, "青茶");
 	}
 
 	@SuppressLint("HandlerLeak")

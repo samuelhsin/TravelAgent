@@ -23,14 +23,21 @@ public class ScheduleGridView extends DragGridView {
 
 	public ScheduleGridView(Context context) {
 		super(context);
+		init();
 	}
 
 	public ScheduleGridView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
+		init();
 	}
 
 	public ScheduleGridView(Context context, AttributeSet attrs) {
 		super(context, attrs);
+		init();
+	}
+	
+	protected void init(){
+		
 	}
 
 	public void setTrashCan(ImageView trashCan) {
@@ -72,33 +79,40 @@ public class ScheduleGridView extends DragGridView {
 		// Toast.makeText(getContext(), adapter.getList().toString(), Toast.LENGTH_SHORT).show();
 	}
 
+	public void onDelete(MotionEvent ev) {
+		if (trashCan != null) {
+			Rect rc = new Rect();
+			trashCan.getDrawingRect(rc);
+			int[] location = new int[2];
+			trashCan.getLocationOnScreen(location);
+			rc.set(location[0], location[1], location[0] + rc.right, location[1] + rc.bottom);
+			if (rc.contains((int) ev.getRawX(), (int) ev.getRawY())) {
+				ScheduleGridAdapter adapter = (ScheduleGridAdapter) getAdapter();
+				final int dragSrcPosition = this.getDragSrcPosition();
+				IModel dragSrcItem = adapter.getItem(dragSrcPosition);
+				Builder comfirm = new AlertDialog.Builder(this.getContext());
+				comfirm.setTitle(R.string.delete_spot);
+				comfirm.setMessage(R.string.delete_spot_confirm);
+				comfirm.setIcon(android.R.drawable.ic_dialog_alert);
+				comfirm.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int whichButton) {
+						deleteGridItem(dragSrcPosition);
+					};
+				});
+				comfirm.setNegativeButton(R.string.no, null);
+				comfirm.show();
+			}
+		}
+	}
+
 	@Override
 	public void onDrop(MotionEvent ev) {
 		super.onDrop(ev);
 
 		// 移除物件
-		Rect rc = new Rect();
-		trashCan.getDrawingRect(rc);
-		int[] location = new int[2];
-		trashCan.getLocationOnScreen(location);
-		rc.set(location[0], location[1], location[0] + rc.right, location[1] + rc.bottom);
-		if (rc.contains((int) ev.getRawX(), (int) ev.getRawY())) {
-			ScheduleGridAdapter adapter = (ScheduleGridAdapter) getAdapter();
-			final int dragSrcPosition = this.getDragSrcPosition();
-			IModel dragSrcItem = adapter.getItem(dragSrcPosition);
-			Builder comfirm = new AlertDialog.Builder(this.getContext());
-			comfirm.setTitle(R.string.delete_spot);
-			comfirm.setMessage(R.string.delete_spot_confirm);
-			comfirm.setIcon(android.R.drawable.ic_dialog_alert);
-			comfirm.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int whichButton) {
-					deleteGridItem(dragSrcPosition);
-				};
-			});
-			comfirm.setNegativeButton(R.string.no, null);
-			comfirm.show();
-		}
+		onDelete(ev);
+
 	}
 
 }
