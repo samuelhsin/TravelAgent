@@ -15,6 +15,9 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
 
+import com.fastdevelopment.travelagent.android.common.ServerConstants.ModelType;
+import com.fastdevelopment.travelagent.android.model.IModel;
+
 public class DragGridView extends GridView {
 
 	private String TAG = this.getClass().getSimpleName();
@@ -57,30 +60,34 @@ public class DragGridView extends GridView {
 
 			// 选中数据项位置 ,
 			dragSrcPosition = dragDesPosition = pointToPosition(x, y);
-			if (dragDesPosition == AdapterView.INVALID_POSITION) {// 无效位置(超出边蛸,分割线)
-				return super.onInterceptTouchEvent(ev);
+
+			IModel model = getGridItem(dragSrcPosition);
+			if (model != null && ModelType.DISTANCE != model.getModelType()) {
+				if (dragDesPosition == AdapterView.INVALID_POSITION) {// 无效位置(超出边蛸,分割线)
+					return super.onInterceptTouchEvent(ev);
+				}
+				Log.i(TAG, "[onInterceptTouchEvent] dragSrcPosition:" + dragSrcPosition + ",getFirstVisiblePosition():" + getFirstVisiblePosition());
+				// getFirstVisiblePosition()返回第一个display在界面的view在adapter的位置 可能是0,也可能是4
+				ViewGroup itemView = (ViewGroup) getChildAt(dragDesPosition - getFirstVisiblePosition());
+				// 计算按下的坐标相对当前项的位置
+				dragPointX = x - itemView.getLeft();// 在当前项的X位置
+				dragPointY = y - itemView.getTop();
+				// 当前窗体和屏幕的距离
+				dragOffsetX = (int) (ev.getRawX() - x);
+				dragOffsetY = (int) (ev.getRawY() - y);
+				Log.i(TAG, "[onInterceptTouchEvent] [x:" + x + ",y:" + y + "],[rawX:" + ev.getRawX() + ",rawY:" + ev.getRawY() + "]");
+				Log.i(TAG, "[onInterceptTouchEvent] [dragPointX:" + dragPointX + ",dragPointY:" + dragPointY + "],[dragOffsetX:" + dragOffsetX + ",dragOffsetY:" + dragOffsetY + "]");
+				//
+				// upScrollBounce = Math.min(y-scaledTouchSlop, getHeight()/4);
+				// downScrollBounce = Math.max(y+scaledTouchSlop, getHeight()*3/4);
+
+				upScrollBounce = Math.min(y, getHeight() / 4);// 向上可以滚动的距离
+				downScrollBounce = Math.max(y, getHeight() * 3 / 4);// 向下可以滚动的距离
+
+				itemView.setDrawingCacheEnabled(true);
+				Bitmap bm = Bitmap.createBitmap(itemView.getDrawingCache());
+				startDrag(bm, x, y);
 			}
-			Log.i(TAG, "[onInterceptTouchEvent] dragSrcPosition:" + dragSrcPosition + ",getFirstVisiblePosition():" + getFirstVisiblePosition());
-			// getFirstVisiblePosition()返回第一个display在界面的view在adapter的位置 可能是0,也可能是4
-			ViewGroup itemView = (ViewGroup) getChildAt(dragDesPosition - getFirstVisiblePosition());
-			// 计算按下的坐标相对当前项的位置
-			dragPointX = x - itemView.getLeft();// 在当前项的X位置
-			dragPointY = y - itemView.getTop();
-			// 当前窗体和屏幕的距离
-			dragOffsetX = (int) (ev.getRawX() - x);
-			dragOffsetY = (int) (ev.getRawY() - y);
-			Log.i(TAG, "[onInterceptTouchEvent] [x:" + x + ",y:" + y + "],[rawX:" + ev.getRawX() + ",rawY:" + ev.getRawY() + "]");
-			Log.i(TAG, "[onInterceptTouchEvent] [dragPointX:" + dragPointX + ",dragPointY:" + dragPointY + "],[dragOffsetX:" + dragOffsetX + ",dragOffsetY:" + dragOffsetY + "]");
-			//
-			// upScrollBounce = Math.min(y-scaledTouchSlop, getHeight()/4);
-			// downScrollBounce = Math.max(y+scaledTouchSlop, getHeight()*3/4);
-
-			upScrollBounce = Math.min(y, getHeight() / 4);// 向上可以滚动的距离
-			downScrollBounce = Math.max(y, getHeight() * 3 / 4);// 向下可以滚动的距离
-
-			itemView.setDrawingCacheEnabled(true);
-			Bitmap bm = Bitmap.createBitmap(itemView.getDrawingCache());
-			startDrag(bm, x, y);
 		}
 
 		return super.onInterceptTouchEvent(ev);
@@ -210,6 +217,10 @@ public class DragGridView extends GridView {
 
 	protected double calDistance(int x1, int y1, int x2, int y2) {
 		return Math.sqrt(Math.abs(x1 - x2) * Math.abs(x1 - x2) + Math.abs(y1 - y2) * Math.abs(y1 - y2));
+	}
+
+	public IModel getGridItem(int position) {
+		return (IModel) getAdapter().getItem(position);
 	}
 
 	public int getDragSrcPosition() {

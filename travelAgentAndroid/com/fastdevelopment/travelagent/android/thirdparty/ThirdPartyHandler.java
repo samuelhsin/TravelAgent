@@ -49,9 +49,7 @@ public class ThirdPartyHandler {
 
 				FactualQuery factualQuery = querySpotsToFactualApi(countryCode);
 
-				FactualQuery factualQuery2 = querySpotsToFactualApi(countryCode);
-
-				GoogleDistanceMetrix googleDistanceMetrix = queryDistanceMetrixToGoogleApi(factualQuery, factualQuery2);
+				GoogleDistanceMetrix googleDistanceMetrix = queryDistanceMetrixToGoogleApi(factualQuery, factualQuery);
 
 				Message msg = new Message();
 				Bundle data = BundleDataFactory.createBundleData(googleDistanceMetrix);

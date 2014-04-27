@@ -50,6 +50,8 @@ public class ScheduleGridView extends DragGridView {
 		adapter.remove(dragSrcItem);
 		return true;
 	}
+	
+	
 
 	@Override
 	protected void onDropInExceedTop() {

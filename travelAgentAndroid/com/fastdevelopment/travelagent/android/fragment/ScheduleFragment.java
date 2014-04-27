@@ -14,16 +14,14 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.util.Log;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
@@ -32,6 +30,7 @@ import android.widget.Toast;
 import com.fastdevelopment.travelagent.android.R;
 import com.fastdevelopment.travelagent.android.common.ServerConstants.CountryCode;
 import com.fastdevelopment.travelagent.android.common.ServerConstants.IBundleDataKey;
+import com.fastdevelopment.travelagent.android.common.ServerConstants.ModelType;
 import com.fastdevelopment.travelagent.android.model.DistanceModel;
 import com.fastdevelopment.travelagent.android.model.IModel;
 import com.fastdevelopment.travelagent.android.model.PlaceModel;
@@ -43,6 +42,7 @@ import com.google.android.gms.maps.GoogleMap;
 
 public class ScheduleFragment extends Fragment {
 
+	private String TAG = this.getClass().getSimpleName();
 	private ProgressBar progressBar;
 	private GoogleMap map;
 	private Handler httpResponseHandler;
@@ -166,7 +166,7 @@ public class ScheduleFragment extends Fragment {
 		}
 	}
 
-	protected void loadScheduleResult() {
+	protected void loadScheduleResult(GoogleDistanceMetrix result) {
 
 		wholeView.removeView(formView);
 
@@ -174,13 +174,20 @@ public class ScheduleFragment extends Fragment {
 
 		ScheduleGridView scheduleGridView = (ScheduleGridView) scheduleView.findViewById(R.id.drag_grid);
 
+		// setting trash can
+		ImageView trashCan = (ImageView) scheduleView.findViewById(R.id.imgTrashCan);
+		scheduleGridView.setTrashCan(trashCan);
+
+		// init schedule list
+		
+		
 		List<IModel> modelList = new ArrayList<IModel>();
 		for (int i = 0; i < 3; i++) {
-			IModel model = new PlaceModel();
+			IModel model = new PlaceModel(ModelType.PLACE);
 			model.setName("place " + i);
 			modelList.add(model);
 			if (i != 11) {
-				model = new DistanceModel();
+				model = new DistanceModel(ModelType.DISTANCE);
 				model.setName("time");
 				modelList.add(model);
 			}
@@ -190,26 +197,6 @@ public class ScheduleFragment extends Fragment {
 
 		wholeView.addView(scheduleView, 0);
 
-		// register context menu (long touch grid item)
-		this.registerForContextMenu(scheduleGridView);
-
-	}
-
-	@Override
-	public boolean onContextItemSelected(MenuItem item) {
-		// 當使用者點選項目時，所需的動作
-		Toast.makeText(this.context, "您選擇的是" + item.getTitle(), Toast.LENGTH_SHORT).show();
-		return super.onContextItemSelected(item);
-	}
-
-	@Override
-	public void onCreateContextMenu(ContextMenu contextMenu, View view, ContextMenuInfo menuInfo) {
-		// 設定選單內容
-		super.onCreateContextMenu(contextMenu, view, menuInfo);
-		contextMenu.add(0, 0, 0, "紅茶");
-		contextMenu.add(0, 1, 0, "奶茶");
-		contextMenu.add(0, 2, 0, "綠茶");
-		contextMenu.add(0, 3, 0, "青茶");
 	}
 
 	@SuppressLint("HandlerLeak")
@@ -219,11 +206,15 @@ public class ScheduleFragment extends Fragment {
 			public void handleMessage(Message msg) {
 				super.handleMessage(msg);
 				Bundle data = msg.getData();
-				GoogleDistanceMetrix result = (GoogleDistanceMetrix) data.getSerializable(IBundleDataKey.GOOGLE_DISTANCE_METRIX);
-				String val = data.getString("result");
-				Log.i("mylog", "Result-->" + result.getStatus());
-				load(false);
-				loadScheduleResult();
+				if (data != null) {
+					GoogleDistanceMetrix result = (GoogleDistanceMetrix) data.getSerializable(IBundleDataKey.GOOGLE_DISTANCE_METRIX);
+					Log.i(TAG, "scheduling from third party return status-->" + result.getStatus());
+					load(false);
+					loadScheduleResult(result);
+				} else {
+					Toast.makeText(context, context.getResources().getString(R.string.return_error), Toast.LENGTH_LONG).show();
+				}
+
 			}
 		};
 	}
