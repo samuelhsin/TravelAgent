@@ -12,6 +12,8 @@ import android.view.View.OnClickListener;
 import android.widget.LinearLayout;
 
 import com.fastdevelopment.travelagent.android.component.CusViewPager;
+import com.fastdevelopment.travelagent.android.fragment.IFragment;
+import com.fastdevelopment.travelagent.android.fragment.ScheduleFragment;
 
 public class CusFramePagerAdapter extends FragmentPagerAdapter implements OnPageChangeListener, OnClickListener {
 	private List<Fragment> fragmentsList;
@@ -48,8 +50,6 @@ public class CusFramePagerAdapter extends FragmentPagerAdapter implements OnPage
 		return fragmentsList.size();
 	}
 
-	
-	
 	// ******************OnPageChangeListener***************
 	@Override
 	public void onPageScrollStateChanged(int state) {
@@ -78,9 +78,19 @@ public class CusFramePagerAdapter extends FragmentPagerAdapter implements OnPage
 	@Override
 	public void onClick(View view) {
 		for (int i = 0; i < llTab.getChildCount(); i++) {
+
 			if (view.equals(llTab.getChildAt(i))) {
+
 				llTab.getChildAt(i).setBackgroundColor(Color.YELLOW);
+
+				IFragment loseFocusfragment = (ScheduleFragment) getItem(viewPager.getCurrentItem());
+				loseFocusfragment.onFocusChange(view, false);
+
 				viewPager.setCurrentItem(i);
+
+				IFragment focusfragment = (ScheduleFragment) getItem(i);
+				focusfragment.onFocusChange(view, true);
+
 			} else {
 				llTab.getChildAt(i).setBackgroundColor(Color.BLUE);
 			}

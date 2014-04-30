@@ -5,6 +5,7 @@ import android.support.v4.app.Fragment;
 import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnFocusChangeListener;
 import android.view.ViewGroup;
 
 import com.fastdevelopment.travelagent.android.R;
@@ -14,7 +15,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MapFragment extends Fragment {
+public class MapFragment extends Fragment implements IFragment {
 
 	/** The view. */
 	private static View view;
@@ -72,18 +73,21 @@ public class MapFragment extends Fragment {
 	}
 
 	/**
-	 * This is where we can add markers or lines, add listeners or move the
-	 * camera. This should only be called once and when we are sure that
-	 * {@link #gMap} is not null.
+	 * This is where we can add markers or lines, add listeners or move the camera. This should only be called once and when we are sure that {@link #gMap} is not null.
 	 */
 	private void setUpMap() {
 		gMap.addMarker(new MarkerOptions().position(BANGALORE).title("My Home").snippet("Home Address"));
 		gMap.animateCamera(CameraUpdateFactory.newLatLngZoom(BANGALORE, zoom));
 	}
 
+	@Override
+	public void onFocusChange(View v, boolean hasFocus) {
+		// TODO Auto-generated method stub
+
+	}
+
 	/****
-	 * The mapfragment's id must be removed from the FragmentManager or else if
-	 * the same it is passed on the next time then app will crash
+	 * The mapfragment's id must be removed from the FragmentManager or else if the same it is passed on the next time then app will crash
 	 ****/
 	// @Override
 	// public void onDestroyView() {

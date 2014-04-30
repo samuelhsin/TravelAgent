@@ -1,6 +1,5 @@
 package com.fastdevelopment.travelagent.android.fragment;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -16,6 +15,7 @@ import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnFocusChangeListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -28,19 +28,17 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.fastdevelopment.travelagent.android.R;
+import com.fastdevelopment.travelagent.android.common.PlaceTimeFactory;
 import com.fastdevelopment.travelagent.android.common.ServerConstants.CountryCode;
 import com.fastdevelopment.travelagent.android.common.ServerConstants.IBundleDataKey;
-import com.fastdevelopment.travelagent.android.common.ServerConstants.ModelType;
-import com.fastdevelopment.travelagent.android.model.DistanceModel;
 import com.fastdevelopment.travelagent.android.model.IModel;
-import com.fastdevelopment.travelagent.android.model.PlaceModel;
 import com.fastdevelopment.travelagent.android.thirdparty.ThirdPartyHandler;
 import com.fastdevelopment.travelagent.android.thirdparty.data.GoogleDistanceMetrix;
 import com.fastdevelopment.travelagent.android.view.ScheduleGridAdapter;
 import com.fastdevelopment.travelagent.android.view.ScheduleGridView;
 import com.google.android.gms.maps.GoogleMap;
 
-public class ScheduleFragment extends Fragment {
+public class ScheduleFragment extends Fragment implements IFragment {
 
 	private String TAG = this.getClass().getSimpleName();
 	private ProgressBar progressBar;
@@ -117,7 +115,7 @@ public class ScheduleFragment extends Fragment {
 						ThirdPartyHandler tp = ThirdPartyHandler.getInstance();
 						tp.invokeDistanceTimeEvent(httpResponseHandler, countryCode);
 					} catch (Exception e) {
-						Log.e(this.getClass().getSimpleName(), ExceptionUtils.getStackTrace(e));
+						Log.e(TAG, ExceptionUtils.getStackTrace(e));
 					}
 				} else {
 					Toast.makeText(context, context.getResources().getString(R.string.no_item_selected), Toast.LENGTH_LONG).show();
@@ -126,6 +124,8 @@ public class ScheduleFragment extends Fragment {
 			}
 
 		});
+
+		// on fragment focus
 
 		return wholeView;
 	};
@@ -166,7 +166,7 @@ public class ScheduleFragment extends Fragment {
 		}
 	}
 
-	protected void loadScheduleResult(GoogleDistanceMetrix result) {
+	protected void loadScheduleResult(GoogleDistanceMetrix result) throws Exception {
 
 		wholeView.removeView(formView);
 
@@ -179,19 +179,7 @@ public class ScheduleFragment extends Fragment {
 		scheduleGridView.setTrashCan(trashCan);
 
 		// init schedule list
-		
-		
-		List<IModel> modelList = new ArrayList<IModel>();
-		for (int i = 0; i < 3; i++) {
-			IModel model = new PlaceModel(ModelType.PLACE);
-			model.setName("place " + i);
-			modelList.add(model);
-			if (i != 11) {
-				model = new DistanceModel(ModelType.DISTANCE);
-				model.setName("time");
-				modelList.add(model);
-			}
-		}
+		List<IModel> modelList = PlaceTimeFactory.calculatePlaceTimePath(result);
 		ScheduleGridAdapter adapter = new ScheduleGridAdapter(this.context, modelList);
 		scheduleGridView.setAdapter(adapter);
 
@@ -210,13 +198,31 @@ public class ScheduleFragment extends Fragment {
 					GoogleDistanceMetrix result = (GoogleDistanceMetrix) data.getSerializable(IBundleDataKey.GOOGLE_DISTANCE_METRIX);
 					Log.i(TAG, "scheduling from third party return status-->" + result.getStatus());
 					load(false);
-					loadScheduleResult(result);
+					try {
+						loadScheduleResult(result);
+					} catch (Exception e) {
+						Log.e(TAG, ExceptionUtils.getStackTrace(e));
+					}
 				} else {
 					Toast.makeText(context, context.getResources().getString(R.string.return_error), Toast.LENGTH_LONG).show();
 				}
 
 			}
 		};
+	}
+
+	protected void reloadView() {
+
+	}
+
+	@Override
+	public void onFocusChange(View v, boolean hasFocus) {
+		if (hasFocus) {
+			if (wholeView.getChildAt(0) != formView) {
+				wholeView.removeViewAt(0);
+				wholeView.addView(formView, 0);
+			}
+		}
 	}
 
 }
