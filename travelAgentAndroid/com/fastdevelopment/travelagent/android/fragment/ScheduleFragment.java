@@ -15,7 +15,6 @@ import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnFocusChangeListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -166,7 +165,7 @@ public class ScheduleFragment extends Fragment implements IFragment {
 		}
 	}
 
-	protected void loadScheduleResult(GoogleDistanceMetrix result) throws Exception {
+	public void loadScheduleResult(GoogleDistanceMetrix result) throws Exception {
 
 		wholeView.removeView(formView);
 
@@ -180,7 +179,7 @@ public class ScheduleFragment extends Fragment implements IFragment {
 
 		// init schedule list
 		List<IModel> modelList = PlaceTimeFactory.calculatePlaceTimePath(result);
-		ScheduleGridAdapter adapter = new ScheduleGridAdapter(this.context, modelList);
+		ScheduleGridAdapter adapter = new ScheduleGridAdapter(this.context, modelList, result);
 		scheduleGridView.setAdapter(adapter);
 
 		wholeView.addView(scheduleView, 0);

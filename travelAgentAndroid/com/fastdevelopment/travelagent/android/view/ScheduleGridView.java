@@ -1,16 +1,25 @@
 package com.fastdevelopment.travelagent.android.view;
 
+import java.util.List;
+
+import org.apache.commons.lang.exception.ExceptionUtils;
+
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.fastdevelopment.travelagent.android.R;
+import com.fastdevelopment.travelagent.android.common.PlaceTimeFactory;
+import com.fastdevelopment.travelagent.android.common.ServerConfig;
 import com.fastdevelopment.travelagent.android.component.DragGridView;
 import com.fastdevelopment.travelagent.android.model.IModel;
 
@@ -20,6 +29,7 @@ public class ScheduleGridView extends DragGridView {
 
 	protected ImageView trashCan;
 	protected LinearLayout parentLayout;
+	protected Resources resource = ServerConfig.resource;
 
 	public ScheduleGridView(Context context) {
 		super(context);
@@ -35,23 +45,40 @@ public class ScheduleGridView extends DragGridView {
 		super(context, attrs);
 		init();
 	}
-	
-	protected void init(){
-		
+
+	protected void init() {
+
 	}
 
 	public void setTrashCan(ImageView trashCan) {
 		this.trashCan = trashCan;
 	}
 
-	protected boolean deleteGridItem(int itemPosition) {
+	protected boolean deleteGridItem(int itemPosition) throws Exception {
+
+		// 0. check this item is not last item
 		ScheduleGridAdapter adapter = (ScheduleGridAdapter) getAdapter();
-		IModel dragSrcItem = adapter.getItem(itemPosition);
-		adapter.remove(dragSrcItem);
-		return true;
+		if (adapter.getGoogleDistanceMetrix().getOrigin_addresses().size() > 1) {
+			// 1. delete grid item
+			IModel dragSrcItem = adapter.getItem(itemPosition);
+			adapter.remove(dragSrcItem);
+
+			// 2. regenerate item
+			PlaceTimeFactory.removePlace(adapter.getGoogleDistanceMetrix(), dragSrcItem.getName());
+			List<IModel> newModelList = PlaceTimeFactory.calculatePlaceTimePath(adapter.getGoogleDistanceMetrix());
+
+			// 3. renew adapter
+			ScheduleGridAdapter newAdapter = new ScheduleGridAdapter(adapter.getContext(), newModelList, adapter.getGoogleDistanceMetrix());
+			setAdapter(newAdapter);
+
+			// 4. change values array with your new data then update the adapter
+			newAdapter.notifyDataSetChanged();
+
+			return true;
+		} else {
+			return false;
+		}
 	}
-	
-	
 
 	@Override
 	protected void onDropInExceedTop() {
@@ -99,7 +126,18 @@ public class ScheduleGridView extends DragGridView {
 				comfirm.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int whichButton) {
-						deleteGridItem(dragSrcPosition);
+						try {
+							boolean isSuccess = deleteGridItem(dragSrcPosition);
+
+							if (isSuccess) {
+								Toast.makeText(getContext(), resource.getString(R.string.delete_success), Toast.LENGTH_LONG);
+							} else {
+								Toast.makeText(getContext(), resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
+							}
+
+						} catch (Exception e) {
+							Log.e(TAG, ExceptionUtils.getStackTrace(e));
+						}
 					};
 				});
 				comfirm.setNegativeButton(R.string.no, null);

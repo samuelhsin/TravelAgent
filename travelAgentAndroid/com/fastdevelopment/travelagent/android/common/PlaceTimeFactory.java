@@ -1,7 +1,10 @@
 package com.fastdevelopment.travelagent.android.common;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+
+import android.util.Log;
 
 import com.fastdevelopment.travelagent.android.common.ServerConstants.ModelType;
 import com.fastdevelopment.travelagent.android.model.DistanceModel;
@@ -12,6 +15,37 @@ import com.fastdevelopment.travelagent.android.thirdparty.data.GoogleDistanceEle
 import com.fastdevelopment.travelagent.android.thirdparty.data.GoogleDistanceMetrix;
 
 public abstract class PlaceTimeFactory {
+
+	private static final String TAG = PlaceTimeFactory.class.getSimpleName();
+
+	public static GoogleDistanceMetrix removePlace(GoogleDistanceMetrix metrixData, String placeName) throws Exception {
+
+		int index = -1;
+
+		int placeNumber = metrixData.getOrigin_addresses().size();
+		for (int i = 0; i < placeNumber; i++) {
+			String temp = metrixData.getOrigin_addresses().get(i);
+			if (temp != null && temp.equals(placeName)) {
+				index = i;
+				break;
+			}
+		}
+
+		if (index != -1) {
+			metrixData.getOrigin_addresses().remove(index);
+			metrixData.getDestination_addresses().remove(index);
+			metrixData.getRows().remove(index);
+
+			for (Iterator<GoogleDistance> iterator = metrixData.getRows().iterator(); iterator.hasNext();) {
+				GoogleDistance googleDistance = iterator.next();
+				googleDistance.getElements().remove(index);
+			}
+		} else {
+			Log.w(TAG, "cant find deleted place name in grid's item list");
+		}
+
+		return metrixData;
+	}
 
 	public static List<IModel> calculatePlaceTimePath(GoogleDistanceMetrix metrixData) throws Exception {
 		List<IModel> result = null;

@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.commons.lang.exception.ExceptionUtils;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,14 +14,21 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.fastdevelopment.travelagent.android.R;
+import com.fastdevelopment.travelagent.android.common.ServerConfig;
 import com.fastdevelopment.travelagent.android.model.IModel;
+import com.fastdevelopment.travelagent.android.thirdparty.data.GoogleDistanceMetrix;
 
 public class ScheduleGridAdapter extends ArrayAdapter<IModel> {
 
 	private String TAG = this.getClass().getSimpleName();
 
-	public ScheduleGridAdapter(Context context, List<IModel> objects) {
+	private GoogleDistanceMetrix googleDistanceMetrix;
+
+	private Resources resources = ServerConfig.resource;
+
+	public ScheduleGridAdapter(Context context, List<IModel> objects, GoogleDistanceMetrix googleDistanceMetrix) {
 		super(context, 0, objects);
+		this.googleDistanceMetrix = googleDistanceMetrix;
 	}
 
 	@Override
@@ -33,10 +41,19 @@ public class ScheduleGridAdapter extends ArrayAdapter<IModel> {
 			TextView textView = (TextView) view.findViewById(R.id.drag_grid_item_text);
 			textView.setText(getItem(position).getName());
 
+			if (position % 2 != 0) {
+				// distance
+				textView.setBackgroundColor(resources.getColor(R.color.pink));
+			}
+
 		} catch (Exception e) {
 			Log.e(TAG, ExceptionUtils.getStackTrace(e));
 		}
 		return view;
+	}
+
+	public GoogleDistanceMetrix getGoogleDistanceMetrix() {
+		return googleDistanceMetrix;
 	}
 
 }

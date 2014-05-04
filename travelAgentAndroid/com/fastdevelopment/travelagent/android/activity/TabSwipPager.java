@@ -27,6 +27,10 @@ public class TabSwipPager {
 		this.parentView = parentView;
 	}
 
+	public boolean changeFragement(int index){
+		return pagerAdapter.changeFragement(index);
+	}
+	
 	public boolean setFragmentList(List<Fragment> fragmentsList, String[] tags) {
 		if (tags.length != fragmentsList.size()) {
 			return false;

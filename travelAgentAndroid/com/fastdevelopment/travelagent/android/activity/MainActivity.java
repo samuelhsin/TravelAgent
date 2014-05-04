@@ -18,7 +18,7 @@ import com.fastdevelopment.travelagent.android.fragment.SettingsFragment;
 public class MainActivity extends FragmentActivity {
 
 	private LinearLayout llTabSwipPager;
-	private TabSwipPager tabSwipPager;
+	public TabSwipPager tabSwipPager;
 	private List<Fragment> fragmentsList;
 	private String[] tags;
 
@@ -50,6 +50,12 @@ public class MainActivity extends FragmentActivity {
 
 		tags = new String[] { this.getResources().getString(R.string.schedule), this.getResources().getString(R.string.plan), this.getResources().getString(R.string.news),
 				this.getResources().getString(R.string.settings) };
+
+	}
+
+	public boolean changeFragement(int index) {
+
+		return tabSwipPager.changeFragement(index);
 
 	}
 

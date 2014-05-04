@@ -13,7 +13,6 @@ import android.widget.LinearLayout;
 
 import com.fastdevelopment.travelagent.android.component.CusViewPager;
 import com.fastdevelopment.travelagent.android.fragment.IFragment;
-import com.fastdevelopment.travelagent.android.fragment.ScheduleFragment;
 
 public class CusFramePagerAdapter extends FragmentPagerAdapter implements OnPageChangeListener, OnClickListener {
 	private List<Fragment> fragmentsList;
@@ -31,6 +30,13 @@ public class CusFramePagerAdapter extends FragmentPagerAdapter implements OnPage
 		for (int i = 0; i < llTab.getChildCount(); i++) {
 			llTab.getChildAt(i).setOnClickListener(this);
 		}
+	}
+
+	public boolean changeFragement(int index) {
+
+		viewPager.setCurrentItem(index);
+		
+		return true;
 	}
 
 	@Override
@@ -83,12 +89,12 @@ public class CusFramePagerAdapter extends FragmentPagerAdapter implements OnPage
 
 				llTab.getChildAt(i).setBackgroundColor(Color.YELLOW);
 
-				IFragment loseFocusfragment = (ScheduleFragment) getItem(viewPager.getCurrentItem());
+				IFragment loseFocusfragment = (IFragment) getItem(viewPager.getCurrentItem());
 				loseFocusfragment.onFocusChange(view, false);
 
 				viewPager.setCurrentItem(i);
 
-				IFragment focusfragment = (ScheduleFragment) getItem(i);
+				IFragment focusfragment = (IFragment) getItem(i);
 				focusfragment.onFocusChange(view, true);
 
 			} else {
