@@ -86,6 +86,8 @@ public class DragGridView extends GridView {
 
 				itemView.setDrawingCacheEnabled(true);
 				Bitmap bm = Bitmap.createBitmap(itemView.getDrawingCache());
+				//resize
+				bm = Bitmap.createScaledBitmap(bm, 200, 50, false);
 				startDrag(bm, x, y);
 			}
 		}
@@ -181,7 +183,7 @@ public class DragGridView extends GridView {
 		dragDesPosition = getAdapter().getCount() - 1;
 	}
 
-	protected void onDropInOverDiffObject() {
+	protected void onDropInOverDiffObject() throws Exception {
 
 	}
 

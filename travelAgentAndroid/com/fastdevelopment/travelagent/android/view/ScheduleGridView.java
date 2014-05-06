@@ -13,6 +13,7 @@ import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -27,31 +28,34 @@ public class ScheduleGridView extends DragGridView {
 
 	private String TAG = this.getClass().getSimpleName();
 
-	protected ImageView trashCan;
+	private ScheduleGridView instance = this;
+	protected ImageView imgTrashCan;
+	protected ImageView imgSave;
+	protected ImageView imgAdd;
 	protected LinearLayout parentLayout;
 	protected Resources resource = ServerConfig.resource;
 
 	public ScheduleGridView(Context context) {
 		super(context);
-		init();
+		init(context);
 	}
 
 	public ScheduleGridView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
-		init();
+		init(context);
 	}
 
 	public ScheduleGridView(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		init();
+		init(context);
 	}
 
-	protected void init() {
-
+	protected void init(Context context) {
 	}
-
-	public void setTrashCan(ImageView trashCan) {
-		this.trashCan = trashCan;
+	
+	protected boolean recalculateGridItem() throws Exception {
+		// TODO
+		return true;
 	}
 
 	protected boolean deleteGridItem(int itemPosition) throws Exception {
@@ -93,7 +97,7 @@ public class ScheduleGridView extends DragGridView {
 	}
 
 	@Override
-	protected void onDropInOverDiffObject() {
+	protected void onDropInOverDiffObject() throws Exception {
 		ScheduleGridAdapter adapter = (ScheduleGridAdapter) getAdapter();
 		IModel dragSrcItem = adapter.getItem(this.getDragSrcPosition());
 		IModel dragTargetItem = adapter.getItem(this.getDragDesPosition());
@@ -106,14 +110,21 @@ public class ScheduleGridView extends DragGridView {
 
 		System.out.println("srcPosition=" + this.getDragSrcPosition() + "  dragPosition=" + this.getDragDesPosition());
 		// Toast.makeText(getContext(), adapter.getList().toString(), Toast.LENGTH_SHORT).show();
+
+		boolean isSuccess = recalculateGridItem();
+
+		if (!isSuccess) {
+			// TODO rollback
+		}
+
 	}
 
 	public void onDelete(MotionEvent ev) {
-		if (trashCan != null) {
+		if (imgTrashCan != null) {
 			Rect rc = new Rect();
-			trashCan.getDrawingRect(rc);
+			imgTrashCan.getDrawingRect(rc);
 			int[] location = new int[2];
-			trashCan.getLocationOnScreen(location);
+			imgTrashCan.getLocationOnScreen(location);
 			rc.set(location[0], location[1], location[0] + rc.right, location[1] + rc.bottom);
 			if (rc.contains((int) ev.getRawX(), (int) ev.getRawY())) {
 				ScheduleGridAdapter adapter = (ScheduleGridAdapter) getAdapter();
@@ -146,6 +157,20 @@ public class ScheduleGridView extends DragGridView {
 		}
 	}
 
+	public void setImgTrashCan(ImageView imgTrashCan) {
+		this.imgTrashCan = imgTrashCan;
+	}
+
+	public void setImgSave(ImageView imgSave) {
+		this.imgSave = imgSave;
+		//TODO onclick event
+	}
+
+	public void setImgAdd(ImageView imgAdd) {
+		this.imgAdd = imgAdd;
+		//TODO onclick event
+	}
+
 	@Override
 	public void onDrop(MotionEvent ev) {
 		super.onDrop(ev);
@@ -153,6 +178,10 @@ public class ScheduleGridView extends DragGridView {
 		// 移除物件
 		onDelete(ev);
 
+	}
+
+	public void onAddPlace(View v) {
+		String a = "test";
 	}
 
 }

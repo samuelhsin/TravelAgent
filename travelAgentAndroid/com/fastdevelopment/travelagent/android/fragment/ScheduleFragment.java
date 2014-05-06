@@ -169,14 +169,24 @@ public class ScheduleFragment extends Fragment implements IFragment {
 
 		wholeView.removeView(formView);
 
+		// LinearLayout
 		View scheduleView = LayoutInflater.from(this.context).inflate(R.layout.layout_schedule, null);
 
 		ScheduleGridView scheduleGridView = (ScheduleGridView) scheduleView.findViewById(R.id.drag_grid);
 
-		// setting trash can
-		ImageView trashCan = (ImageView) scheduleView.findViewById(R.id.imgTrashCan);
-		scheduleGridView.setTrashCan(trashCan);
+		// get add img
+		ImageView imgAdd = (ImageView) scheduleView.findViewById(R.id.imgAdd);
 
+		// get save img
+		ImageView imgSave = (ImageView) scheduleView.findViewById(R.id.imgSave);
+
+		// get delete img
+		ImageView imgDelete = (ImageView) scheduleView.findViewById(R.id.imgTrashCan);
+
+		scheduleGridView.setImgAdd(imgAdd);
+		scheduleGridView.setImgSave(imgSave);
+		scheduleGridView.setImgTrashCan(imgDelete);
+		
 		// init schedule list
 		List<IModel> modelList = PlaceTimeFactory.calculatePlaceTimePath(result);
 		ScheduleGridAdapter adapter = new ScheduleGridAdapter(this.context, modelList, result);
