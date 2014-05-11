@@ -19,7 +19,7 @@ import org.json.JSONObject;
 
 import android.annotation.SuppressLint;
 
-public class Json2PojoParser implements IJson2PojoParserParser {
+public class Json2PojoParser implements IJson2PojoParser {
 
 	private final static Map<String, Map<String, Class<?>>> classMetadataMap = new HashMap<String, Map<String, Class<?>>>();
 
@@ -230,6 +230,7 @@ public class Json2PojoParser implements IJson2PojoParserParser {
 				// object setter
 				String setterMethodName = Character.toUpperCase(cleanFunctionName.charAt(0)) + cleanFunctionName.substring(1);
 				Method setter = data.getClass().getMethod("set" + setterMethodName, types);
+				//new a value to avoid memory link
 				setter.invoke(data, new Object[] { value });
 			}
 

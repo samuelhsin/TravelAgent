@@ -1,6 +1,7 @@
 package com.fastdevelopment.travelagent.android.thirdparty.data;
 
 import java.util.List;
+import java.util.Map;
 
 import com.fastdevelopment.travelagent.android.json2pojo.JsonDataMethodAnnotation;
 import com.fastdevelopment.travelagent.android.json2pojo.JsonObject;

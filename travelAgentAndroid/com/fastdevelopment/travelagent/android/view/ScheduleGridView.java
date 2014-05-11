@@ -3,6 +3,7 @@ package com.fastdevelopment.travelagent.android.view;
 import java.util.List;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.json.JSONObject;
 
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
@@ -15,14 +16,19 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.fastdevelopment.travelagent.android.R;
+import com.fastdevelopment.travelagent.android.activity.MainActivity;
 import com.fastdevelopment.travelagent.android.common.PlaceTimeFactory;
 import com.fastdevelopment.travelagent.android.common.ServerConfig;
 import com.fastdevelopment.travelagent.android.component.DragGridView;
+import com.fastdevelopment.travelagent.android.fragment.ScheduleFragment;
 import com.fastdevelopment.travelagent.android.model.IModel;
+import com.fastdevelopment.travelagent.android.orm.model.Plan;
+import com.fastdevelopment.travelagent.android.pojo2json.Pojo2JsonParser;
+import com.fastdevelopment.travelagent.android.thirdparty.data.GoogleDistanceMetrix;
+import com.j256.ormlite.dao.Dao;
 
 public class ScheduleGridView extends DragGridView {
 
@@ -32,8 +38,12 @@ public class ScheduleGridView extends DragGridView {
 	protected ImageView imgTrashCan;
 	protected ImageView imgSave;
 	protected ImageView imgAdd;
-	protected LinearLayout parentLayout;
+	protected View parentView;
+	private int planId = -1;
 	protected Resources resource = ServerConfig.resource;
+	protected ScheduleFragment fragment;
+	protected MainActivity activity;
+	private Pojo2JsonParser pojo2JsonParser = new Pojo2JsonParser();
 
 	public ScheduleGridView(Context context) {
 		super(context);
@@ -51,8 +61,9 @@ public class ScheduleGridView extends DragGridView {
 	}
 
 	protected void init(Context context) {
+		activity = (MainActivity) context;
 	}
-	
+
 	protected boolean recalculateGridItem() throws Exception {
 		// TODO
 		return true;
@@ -141,13 +152,14 @@ public class ScheduleGridView extends DragGridView {
 							boolean isSuccess = deleteGridItem(dragSrcPosition);
 
 							if (isSuccess) {
-								Toast.makeText(getContext(), resource.getString(R.string.delete_success), Toast.LENGTH_LONG);
+								Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_success), Toast.LENGTH_LONG);
 							} else {
-								Toast.makeText(getContext(), resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
+								Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
 							}
 
 						} catch (Exception e) {
 							Log.e(TAG, ExceptionUtils.getStackTrace(e));
+							Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
 						}
 					};
 				});
@@ -155,20 +167,6 @@ public class ScheduleGridView extends DragGridView {
 				comfirm.show();
 			}
 		}
-	}
-
-	public void setImgTrashCan(ImageView imgTrashCan) {
-		this.imgTrashCan = imgTrashCan;
-	}
-
-	public void setImgSave(ImageView imgSave) {
-		this.imgSave = imgSave;
-		//TODO onclick event
-	}
-
-	public void setImgAdd(ImageView imgAdd) {
-		this.imgAdd = imgAdd;
-		//TODO onclick event
 	}
 
 	@Override
@@ -182,6 +180,119 @@ public class ScheduleGridView extends DragGridView {
 
 	public void onAddPlace(View v) {
 		String a = "test";
+	}
+
+	protected void settingImgViews() {
+		// get add img
+		ImageView imgAdd = (ImageView) this.parentView.findViewById(R.id.imgAdd);
+		this.imgAdd = imgAdd;
+
+		// get save img
+		ImageView imgSave = (ImageView) this.parentView.findViewById(R.id.imgSave);
+		this.imgSave = imgSave;
+
+		// get delete img
+		ImageView imgTrashCan = (ImageView) this.parentView.findViewById(R.id.imgTrashCan);
+		this.imgTrashCan = imgTrashCan;
+
+		imgSave.setClickable(true);
+		imgSave.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				// save plan
+				try {
+					ScheduleGridAdapter adapter = (ScheduleGridAdapter) getAdapter();
+					GoogleDistanceMetrix googleDistanceMetrix = adapter.getGoogleDistanceMetrix();
+					// change pojo to string
+					String jsonStr = null;
+					JSONObject json = pojo2JsonParser.parsingPojoToJson(googleDistanceMetrix);
+					if (json != null) {
+						jsonStr = json.toString();
+					}
+					// save to db
+					Dao<Plan, Integer> planDao = activity.getDBHelper().getDao(Plan.class);
+					Plan plan = new Plan();
+					plan.setName("test plan");
+					plan.setContent(jsonStr);
+					int row = planDao.create(plan);
+
+					if (row > 0) {
+						planId = plan.getId();
+						Toast.makeText(parentView.getContext(), resource.getString(R.string.add_success), Toast.LENGTH_LONG);
+					} else {
+						Toast.makeText(parentView.getContext(), resource.getString(R.string.add_failed), Toast.LENGTH_LONG);
+					}
+
+				} catch (Exception e) {
+					Log.e(TAG, ExceptionUtils.getStackTrace(e));
+					Toast.makeText(parentView.getContext(), resource.getString(R.string.add_failed), Toast.LENGTH_LONG);
+				}
+			}
+		});
+
+		imgTrashCan.setClickable(true);
+		imgTrashCan.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				// return to schedule input
+				Builder comfirm = new AlertDialog.Builder(activity);
+				comfirm.setTitle(R.string.delete_plan);
+				comfirm.setMessage(R.string.delete_plan_confirm);
+				comfirm.setIcon(android.R.drawable.ic_dialog_alert);
+				comfirm.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int whichButton) {
+						try {
+							try {
+
+								if (planId != -1) {
+									// delete plan to db.
+									Dao<Plan, Integer> planDao = activity.getDBHelper().getDao(Plan.class);
+									int row = planDao.deleteById(planId);
+									if (row > 0) {
+										Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_success), Toast.LENGTH_LONG);
+									} else {
+										Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
+									}
+								} else {
+									Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_success), Toast.LENGTH_LONG);
+								}
+
+								fragment.loadScheduleInput();
+
+							} catch (Exception e) {
+								Log.e(TAG, ExceptionUtils.getStackTrace(e));
+								Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
+							}
+						} catch (Exception e) {
+							Log.e(TAG, ExceptionUtils.getStackTrace(e));
+							Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
+						}
+					};
+				});
+				comfirm.setNegativeButton(R.string.no, null);
+				comfirm.show();
+
+			}
+		});
+
+	}
+
+	public View getParentView() {
+		return parentView;
+	}
+
+	public void setParentView(View parentView) {
+		this.parentView = parentView;
+		settingImgViews();
+	}
+
+	public ScheduleFragment getFragment() {
+		return fragment;
+	}
+
+	public void setFragment(ScheduleFragment fragment) {
+		this.fragment = fragment;
 	}
 
 }

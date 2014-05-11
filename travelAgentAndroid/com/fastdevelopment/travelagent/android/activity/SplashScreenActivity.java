@@ -3,9 +3,12 @@ package com.fastdevelopment.travelagent.android.activity;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 
 import com.fastdevelopment.travelagent.android.R;
@@ -21,6 +24,8 @@ public class SplashScreenActivity extends Activity {
 	 * The thread to process splash screen events
 	 */
 	private Thread mSplashThread;
+	
+	private final String TAG = this.getClass().getSimpleName();
 
 	private DatabaseHelper databaseHelper = null;
 
@@ -82,8 +87,7 @@ public class SplashScreenActivity extends Activity {
 				userDao.create(user);
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Log.e(TAG, ExceptionUtils.getStackTrace(e));
 		}
 
 		return user;

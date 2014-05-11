@@ -20,7 +20,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
@@ -165,6 +164,14 @@ public class ScheduleFragment extends Fragment implements IFragment {
 		}
 	}
 
+	public void loadScheduleInput() throws Exception {
+
+		wholeView.removeViewAt(0);
+
+		wholeView.addView(formView, 0);
+
+	}
+
 	public void loadScheduleResult(GoogleDistanceMetrix result) throws Exception {
 
 		wholeView.removeView(formView);
@@ -174,19 +181,9 @@ public class ScheduleFragment extends Fragment implements IFragment {
 
 		ScheduleGridView scheduleGridView = (ScheduleGridView) scheduleView.findViewById(R.id.drag_grid);
 
-		// get add img
-		ImageView imgAdd = (ImageView) scheduleView.findViewById(R.id.imgAdd);
+		scheduleGridView.setParentView(scheduleView);
+		scheduleGridView.setFragment(this);
 
-		// get save img
-		ImageView imgSave = (ImageView) scheduleView.findViewById(R.id.imgSave);
-
-		// get delete img
-		ImageView imgDelete = (ImageView) scheduleView.findViewById(R.id.imgTrashCan);
-
-		scheduleGridView.setImgAdd(imgAdd);
-		scheduleGridView.setImgSave(imgSave);
-		scheduleGridView.setImgTrashCan(imgDelete);
-		
 		// init schedule list
 		List<IModel> modelList = PlaceTimeFactory.calculatePlaceTimePath(result);
 		ScheduleGridAdapter adapter = new ScheduleGridAdapter(this.context, modelList, result);

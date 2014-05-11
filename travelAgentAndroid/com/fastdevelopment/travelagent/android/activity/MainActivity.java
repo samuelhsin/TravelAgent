@@ -14,6 +14,8 @@ import com.fastdevelopment.travelagent.android.fragment.NewsFragment;
 import com.fastdevelopment.travelagent.android.fragment.PlansFragment;
 import com.fastdevelopment.travelagent.android.fragment.ScheduleFragment;
 import com.fastdevelopment.travelagent.android.fragment.SettingsFragment;
+import com.fastdevelopment.travelagent.android.orm.DatabaseHelper;
+import com.j256.ormlite.android.apptools.OpenHelperManager;
 
 public class MainActivity extends FragmentActivity {
 
@@ -21,6 +23,7 @@ public class MainActivity extends FragmentActivity {
 	public TabSwipPager tabSwipPager;
 	private List<Fragment> fragmentsList;
 	private String[] tags;
+	private DatabaseHelper databaseHelper = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -65,5 +68,22 @@ public class MainActivity extends FragmentActivity {
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
+	
+	public DatabaseHelper getDBHelper() {
+		if (databaseHelper == null) {
+			databaseHelper = OpenHelperManager.getHelper(this, DatabaseHelper.class);
+		}
+		return databaseHelper;
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		if (databaseHelper != null) {
+			OpenHelperManager.releaseHelper();
+			databaseHelper = null;
+		}
+	}
+	
 
 }

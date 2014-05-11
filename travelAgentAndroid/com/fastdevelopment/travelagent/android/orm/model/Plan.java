@@ -4,16 +4,17 @@ import com.google.gson.annotations.SerializedName;
 import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 
-public class User implements IModel {
+public class Plan implements IModel {
+
 	@DatabaseField(generatedId = true, dataType = DataType.INTEGER)
 	@SerializedName("id")
 	private int id;
 	@DatabaseField(dataType = DataType.STRING)
 	@SerializedName("name")
 	private String name;
-	@DatabaseField(dataType = DataType.BOOLEAN)
-	@SerializedName("firstLoad")
-	private boolean firstLoad;
+	@DatabaseField(dataType = DataType.STRING)
+	@SerializedName("content")
+	private String content;
 
 	public int getId() {
 		return id;
@@ -31,12 +32,12 @@ public class User implements IModel {
 		this.name = name;
 	}
 
-	public boolean isFirstLoad() {
-		return firstLoad;
+	public String getContent() {
+		return content;
 	}
 
-	public void setFirstLoad(boolean firstLoad) {
-		this.firstLoad = firstLoad;
+	public void setContent(String content) {
+		this.content = content;
 	}
 
 }
