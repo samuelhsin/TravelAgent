@@ -24,6 +24,7 @@ public class MainActivity extends FragmentActivity {
 	private List<Fragment> fragmentsList;
 	private String[] tags;
 	private DatabaseHelper databaseHelper = null;
+	private static final Object dbPriority = new Object();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -56,24 +57,26 @@ public class MainActivity extends FragmentActivity {
 
 	}
 
-	public boolean changeFragement(int index) {
+	public boolean changeFragement(int index, Object... objects) throws Exception {
 
-		return tabSwipPager.changeFragement(index);
+		return tabSwipPager.changeFragement(index, objects);
 
 	}
-
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
-	
+
 	public DatabaseHelper getDBHelper() {
-		if (databaseHelper == null) {
-			databaseHelper = OpenHelperManager.getHelper(this, DatabaseHelper.class);
+		synchronized (dbPriority) {
+			if (databaseHelper == null) {
+				databaseHelper = OpenHelperManager.getHelper(this, DatabaseHelper.class);
+			}
+			return databaseHelper;
 		}
-		return databaseHelper;
 	}
 
 	@Override
@@ -84,6 +87,5 @@ public class MainActivity extends FragmentActivity {
 			databaseHelper = null;
 		}
 	}
-	
 
 }

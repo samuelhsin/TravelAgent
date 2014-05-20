@@ -29,7 +29,7 @@ import com.fastdevelopment.travelagent.android.R;
 import com.fastdevelopment.travelagent.android.common.PlaceTimeFactory;
 import com.fastdevelopment.travelagent.android.common.ServerConstants.CountryCode;
 import com.fastdevelopment.travelagent.android.common.ServerConstants.IBundleDataKey;
-import com.fastdevelopment.travelagent.android.model.IModel;
+import com.fastdevelopment.travelagent.android.model.IPojoModel;
 import com.fastdevelopment.travelagent.android.thirdparty.ThirdPartyHandler;
 import com.fastdevelopment.travelagent.android.thirdparty.data.GoogleDistanceMetrix;
 import com.fastdevelopment.travelagent.android.view.ScheduleGridAdapter;
@@ -172,20 +172,20 @@ public class ScheduleFragment extends Fragment implements IFragment {
 
 	}
 
-	public void loadScheduleResult(GoogleDistanceMetrix result) throws Exception {
+	public void loadScheduleResult(int planId, GoogleDistanceMetrix result) throws Exception {
 
-		wholeView.removeView(formView);
+		wholeView.removeViewAt(0);
 
 		// LinearLayout
 		View scheduleView = LayoutInflater.from(this.context).inflate(R.layout.layout_schedule, null);
 
-		ScheduleGridView scheduleGridView = (ScheduleGridView) scheduleView.findViewById(R.id.drag_grid);
-
+		ScheduleGridView scheduleGridView = (ScheduleGridView) scheduleView.findViewById(R.id.schedule_grid);
+		scheduleGridView.setPlanId(planId);
 		scheduleGridView.setParentView(scheduleView);
 		scheduleGridView.setFragment(this);
 
 		// init schedule list
-		List<IModel> modelList = PlaceTimeFactory.calculatePlaceTimePath(result);
+		List<IPojoModel> modelList = PlaceTimeFactory.calculatePlaceTimePath(result);
 		ScheduleGridAdapter adapter = new ScheduleGridAdapter(this.context, modelList, result);
 		scheduleGridView.setAdapter(adapter);
 
@@ -205,7 +205,8 @@ public class ScheduleFragment extends Fragment implements IFragment {
 					Log.i(TAG, "scheduling from third party return status-->" + result.getStatus());
 					load(false);
 					try {
-						loadScheduleResult(result);
+						// planId: -1 , is not save into db.
+						loadScheduleResult(-1, result);
 					} catch (Exception e) {
 						Log.e(TAG, ExceptionUtils.getStackTrace(e));
 					}
@@ -229,6 +230,16 @@ public class ScheduleFragment extends Fragment implements IFragment {
 				wholeView.addView(formView, 0);
 			}
 		}
+	}
+
+	@Override
+	public void passValuesByFocus(Object... objects) throws Exception {
+		if (objects != null) {
+			int planId = (Integer) objects[0];
+			GoogleDistanceMetrix googleDistanceMetrix = (GoogleDistanceMetrix) objects[1];
+			loadScheduleResult(planId, googleDistanceMetrix);
+		}
+
 	}
 
 }

@@ -2,14 +2,13 @@ package com.fastdevelopment.travelagent.android.activity;
 
 import java.util.List;
 
-import com.fastdevelopment.travelagent.android.component.CusViewPager;
-
 import android.content.Context;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.view.ViewPager;
 import android.view.WindowManager.LayoutParams;
 import android.widget.LinearLayout;
+
+import com.fastdevelopment.travelagent.android.component.CusViewPager;
 
 public class TabSwipPager {
 
@@ -27,10 +26,10 @@ public class TabSwipPager {
 		this.parentView = parentView;
 	}
 
-	public boolean changeFragement(int index){
-		return pagerAdapter.changeFragement(index);
+	public boolean changeFragement(int index, Object... objects) throws Exception {
+		return pagerAdapter.changeFragement(index, objects);
 	}
-	
+
 	public boolean setFragmentList(List<Fragment> fragmentsList, String[] tags) {
 		if (tags.length != fragmentsList.size()) {
 			return false;

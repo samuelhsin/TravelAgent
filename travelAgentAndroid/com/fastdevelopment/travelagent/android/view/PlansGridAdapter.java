@@ -16,44 +16,36 @@ import android.widget.TextView;
 import com.fastdevelopment.travelagent.android.R;
 import com.fastdevelopment.travelagent.android.common.ServerConfig;
 import com.fastdevelopment.travelagent.android.model.IPojoModel;
-import com.fastdevelopment.travelagent.android.thirdparty.data.GoogleDistanceMetrix;
 
-public class ScheduleGridAdapter extends ArrayAdapter<IPojoModel> {
+public class PlansGridAdapter extends ArrayAdapter<IPojoModel> {
 
 	private String TAG = this.getClass().getSimpleName();
 
-	private GoogleDistanceMetrix googleDistanceMetrix;
-
 	private Resources resources = ServerConfig.resource;
 
-	public ScheduleGridAdapter(Context context, List<IPojoModel> objects, GoogleDistanceMetrix googleDistanceMetrix) {
+	public PlansGridAdapter(Context context, List<IPojoModel> objects) {
 		super(context, 0, objects);
-		this.googleDistanceMetrix = googleDistanceMetrix;
 	}
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		View view = convertView;
 		if (view == null) {
-			view = LayoutInflater.from(getContext()).inflate(R.layout.layout_schedule_grid_item, null);
+			view = LayoutInflater.from(getContext()).inflate(R.layout.layout_plans_grid_item, null);
 		}
 		try {
-			TextView textView = (TextView) view.findViewById(R.id.schedule_grid_item_text);
+			TextView textView = (TextView) view.findViewById(R.id.plans_grid_item_text);
 			textView.setText(getItem(position).getName());
 
 			if (position % 2 != 0) {
 				// distance
-				textView.setBackgroundColor(resources.getColor(R.color.pink));
+				textView.setBackgroundColor(resources.getColor(R.color.lite_blue));
 			}
 
 		} catch (Exception e) {
 			Log.e(TAG, ExceptionUtils.getStackTrace(e));
 		}
 		return view;
-	}
-
-	public GoogleDistanceMetrix getGoogleDistanceMetrix() {
-		return googleDistanceMetrix;
 	}
 
 }

@@ -24,7 +24,7 @@ import com.fastdevelopment.travelagent.android.common.PlaceTimeFactory;
 import com.fastdevelopment.travelagent.android.common.ServerConfig;
 import com.fastdevelopment.travelagent.android.component.DragGridView;
 import com.fastdevelopment.travelagent.android.fragment.ScheduleFragment;
-import com.fastdevelopment.travelagent.android.model.IModel;
+import com.fastdevelopment.travelagent.android.model.IPojoModel;
 import com.fastdevelopment.travelagent.android.orm.model.Plan;
 import com.fastdevelopment.travelagent.android.pojo2json.Pojo2JsonParser;
 import com.fastdevelopment.travelagent.android.thirdparty.data.GoogleDistanceMetrix;
@@ -44,6 +44,7 @@ public class ScheduleGridView extends DragGridView {
 	protected ScheduleFragment fragment;
 	protected MainActivity activity;
 	private Pojo2JsonParser pojo2JsonParser = new Pojo2JsonParser();
+	private Dao<Plan, Integer> planDao = null;
 
 	public ScheduleGridView(Context context) {
 		super(context);
@@ -62,6 +63,17 @@ public class ScheduleGridView extends DragGridView {
 
 	protected void init(Context context) {
 		activity = (MainActivity) context;
+		initDao();
+	}
+
+	private boolean initDao() {
+		try {
+			planDao = activity.getDBHelper().getDao(Plan.class);
+		} catch (Exception e) {
+			Log.e(TAG, ExceptionUtils.getStackTrace(e));
+			return false;
+		}
+		return true;
 	}
 
 	protected boolean recalculateGridItem() throws Exception {
@@ -75,12 +87,12 @@ public class ScheduleGridView extends DragGridView {
 		ScheduleGridAdapter adapter = (ScheduleGridAdapter) getAdapter();
 		if (adapter.getGoogleDistanceMetrix().getOrigin_addresses().size() > 1) {
 			// 1. delete grid item
-			IModel dragSrcItem = adapter.getItem(itemPosition);
+			IPojoModel dragSrcItem = adapter.getItem(itemPosition);
 			adapter.remove(dragSrcItem);
 
 			// 2. regenerate item
 			PlaceTimeFactory.removePlace(adapter.getGoogleDistanceMetrix(), dragSrcItem.getName());
-			List<IModel> newModelList = PlaceTimeFactory.calculatePlaceTimePath(adapter.getGoogleDistanceMetrix());
+			List<IPojoModel> newModelList = PlaceTimeFactory.calculatePlaceTimePath(adapter.getGoogleDistanceMetrix());
 
 			// 3. renew adapter
 			ScheduleGridAdapter newAdapter = new ScheduleGridAdapter(adapter.getContext(), newModelList, adapter.getGoogleDistanceMetrix());
@@ -110,8 +122,8 @@ public class ScheduleGridView extends DragGridView {
 	@Override
 	protected void onDropInOverDiffObject() throws Exception {
 		ScheduleGridAdapter adapter = (ScheduleGridAdapter) getAdapter();
-		IModel dragSrcItem = adapter.getItem(this.getDragSrcPosition());
-		IModel dragTargetItem = adapter.getItem(this.getDragDesPosition());
+		IPojoModel dragSrcItem = adapter.getItem(this.getDragSrcPosition());
+		IPojoModel dragTargetItem = adapter.getItem(this.getDragDesPosition());
 
 		adapter.remove(dragSrcItem);
 		adapter.insert(dragSrcItem, this.getDragDesPosition());
@@ -140,7 +152,7 @@ public class ScheduleGridView extends DragGridView {
 			if (rc.contains((int) ev.getRawX(), (int) ev.getRawY())) {
 				ScheduleGridAdapter adapter = (ScheduleGridAdapter) getAdapter();
 				final int dragSrcPosition = this.getDragSrcPosition();
-				IModel dragSrcItem = adapter.getItem(dragSrcPosition);
+				IPojoModel dragSrcItem = adapter.getItem(dragSrcPosition);
 				Builder comfirm = new AlertDialog.Builder(this.getContext());
 				comfirm.setTitle(R.string.delete_spot);
 				comfirm.setMessage(R.string.delete_spot_confirm);
@@ -195,11 +207,24 @@ public class ScheduleGridView extends DragGridView {
 		ImageView imgTrashCan = (ImageView) this.parentView.findViewById(R.id.imgTrashCan);
 		this.imgTrashCan = imgTrashCan;
 
-		imgSave.setClickable(true);
-		imgSave.setOnClickListener(new OnClickListener() {
+		if (planId == -1) {
+			// new plan
+			imgSave.setVisibility(View.INVISIBLE);
+			imgSave.setClickable(false);
+			imgAdd.setVisibility(View.VISIBLE);
+			imgAdd.setClickable(true);
+		} else {
+			// old plan
+			imgSave.setVisibility(View.VISIBLE);
+			imgSave.setClickable(true);
+			imgAdd.setVisibility(View.INVISIBLE);
+			imgAdd.setClickable(false);
+		}
+
+		imgAdd.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				// save plan
+				// add plan
 				try {
 					ScheduleGridAdapter adapter = (ScheduleGridAdapter) getAdapter();
 					GoogleDistanceMetrix googleDistanceMetrix = adapter.getGoogleDistanceMetrix();
@@ -209,12 +234,47 @@ public class ScheduleGridView extends DragGridView {
 					if (json != null) {
 						jsonStr = json.toString();
 					}
-					// save to db
-					Dao<Plan, Integer> planDao = activity.getDBHelper().getDao(Plan.class);
+					// add to db
 					Plan plan = new Plan();
 					plan.setName("test plan");
 					plan.setContent(jsonStr);
 					int row = planDao.create(plan);
+
+					if (row > 0) {
+						planId = plan.getId();
+						Toast.makeText(parentView.getContext(), resource.getString(R.string.add_success), Toast.LENGTH_LONG);
+					} else {
+						Toast.makeText(parentView.getContext(), resource.getString(R.string.add_failed), Toast.LENGTH_LONG);
+					}
+
+				} catch (Exception e) {
+					Log.e(TAG, ExceptionUtils.getStackTrace(e));
+					Toast.makeText(parentView.getContext(), resource.getString(R.string.add_failed), Toast.LENGTH_LONG);
+				}
+			}
+		});
+
+		imgSave.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				// save plan
+				try {
+
+					ScheduleGridAdapter adapter = (ScheduleGridAdapter) getAdapter();
+					GoogleDistanceMetrix googleDistanceMetrix = adapter.getGoogleDistanceMetrix();
+					// change pojo to string
+					String jsonStr = null;
+					JSONObject json = pojo2JsonParser.parsingPojoToJson(googleDistanceMetrix);
+					if (json != null) {
+						jsonStr = json.toString();
+					}
+					// save to db
+					int row = -1;
+					Plan plan = planDao.queryForId(planId);
+					if (plan != null) {
+						plan.setContent(jsonStr);
+						row = planDao.update(plan);
+					}
 
 					if (row > 0) {
 						planId = plan.getId();
@@ -247,18 +307,18 @@ public class ScheduleGridView extends DragGridView {
 
 								if (planId != -1) {
 									// delete plan to db.
-									Dao<Plan, Integer> planDao = activity.getDBHelper().getDao(Plan.class);
 									int row = planDao.deleteById(planId);
 									if (row > 0) {
 										Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_success), Toast.LENGTH_LONG);
 									} else {
 										Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
 									}
+									// change to plan fragment
+									activity.changeFragement(1);
 								} else {
 									Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_success), Toast.LENGTH_LONG);
+									fragment.loadScheduleInput();
 								}
-
-								fragment.loadScheduleInput();
 
 							} catch (Exception e) {
 								Log.e(TAG, ExceptionUtils.getStackTrace(e));
@@ -293,6 +353,14 @@ public class ScheduleGridView extends DragGridView {
 
 	public void setFragment(ScheduleFragment fragment) {
 		this.fragment = fragment;
+	}
+
+	public int getPlanId() {
+		return planId;
+	}
+
+	public void setPlanId(int planId) {
+		this.planId = planId;
 	}
 
 }

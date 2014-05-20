@@ -5,7 +5,6 @@ import android.support.v4.app.Fragment;
 import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnFocusChangeListener;
 import android.view.ViewGroup;
 
 import com.fastdevelopment.travelagent.android.R;
@@ -82,6 +81,12 @@ public class MapFragment extends Fragment implements IFragment {
 
 	@Override
 	public void onFocusChange(View v, boolean hasFocus) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void passValuesByFocus(Object... objects) throws Exception {
 		// TODO Auto-generated method stub
 
 	}

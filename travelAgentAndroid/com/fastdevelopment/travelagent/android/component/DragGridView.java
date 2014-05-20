@@ -15,8 +15,8 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
 
-import com.fastdevelopment.travelagent.android.common.ServerConstants.ModelType;
-import com.fastdevelopment.travelagent.android.model.IModel;
+import com.fastdevelopment.travelagent.android.common.ServerConstants.PojoModelType;
+import com.fastdevelopment.travelagent.android.model.IPojoModel;
 
 public class DragGridView extends GridView {
 
@@ -61,8 +61,8 @@ public class DragGridView extends GridView {
 			// 选中数据项位置 ,
 			dragSrcPosition = dragDesPosition = pointToPosition(x, y);
 
-			IModel model = getGridItem(dragSrcPosition);
-			if (model != null && ModelType.DISTANCE != model.getModelType()) {
+			IPojoModel model = getGridItem(dragSrcPosition);
+			if (model != null && PojoModelType.DISTANCE != model.getPojoModelType()) {
 				if (dragDesPosition == AdapterView.INVALID_POSITION) {// 无效位置(超出边蛸,分割线)
 					return super.onInterceptTouchEvent(ev);
 				}
@@ -221,8 +221,8 @@ public class DragGridView extends GridView {
 		return Math.sqrt(Math.abs(x1 - x2) * Math.abs(x1 - x2) + Math.abs(y1 - y2) * Math.abs(y1 - y2));
 	}
 
-	public IModel getGridItem(int position) {
-		return (IModel) getAdapter().getItem(position);
+	public IPojoModel getGridItem(int position) {
+		return (IPojoModel) getAdapter().getItem(position);
 	}
 
 	public int getDragSrcPosition() {

@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 
-public class Plan implements IModel {
+public class Plan implements IOrmModel {
 
 	@DatabaseField(generatedId = true, dataType = DataType.INTEGER)
 	@SerializedName("id")

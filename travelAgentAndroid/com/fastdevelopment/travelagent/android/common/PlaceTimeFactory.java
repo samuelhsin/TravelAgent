@@ -6,9 +6,9 @@ import java.util.List;
 
 import android.util.Log;
 
-import com.fastdevelopment.travelagent.android.common.ServerConstants.ModelType;
+import com.fastdevelopment.travelagent.android.common.ServerConstants.PojoModelType;
 import com.fastdevelopment.travelagent.android.model.DistanceModel;
-import com.fastdevelopment.travelagent.android.model.IModel;
+import com.fastdevelopment.travelagent.android.model.IPojoModel;
 import com.fastdevelopment.travelagent.android.model.PlaceModel;
 import com.fastdevelopment.travelagent.android.thirdparty.data.GoogleDistance;
 import com.fastdevelopment.travelagent.android.thirdparty.data.GoogleDistanceElement;
@@ -47,8 +47,8 @@ public abstract class PlaceTimeFactory {
 		return metrixData;
 	}
 
-	public static List<IModel> calculatePlaceTimePath(GoogleDistanceMetrix metrixData) throws Exception {
-		List<IModel> result = null;
+	public static List<IPojoModel> calculatePlaceTimePath(GoogleDistanceMetrix metrixData) throws Exception {
+		List<IPojoModel> result = null;
 
 		if (metrixData != null) {
 			List<String> orgins = metrixData.getOrigin_addresses();
@@ -58,10 +58,10 @@ public abstract class PlaceTimeFactory {
 
 				int currentPlacePosition = -1;
 				List<Integer> schedulePlaces = new ArrayList<Integer>();
-				result = new ArrayList<IModel>();
+				result = new ArrayList<IPojoModel>();
 
 				// put first place
-				IModel placeModel = new PlaceModel(ModelType.PLACE);
+				IPojoModel placeModel = new PlaceModel(PojoModelType.PLACE);
 				placeModel.setName(orgins.get(0));
 				result.add(placeModel);
 				currentPlacePosition = 0;
@@ -94,12 +94,12 @@ public abstract class PlaceTimeFactory {
 
 					if (benchmarkIndex != -1) {
 						// put distance
-						IModel distanceModel = new DistanceModel(ModelType.DISTANCE);
+						IPojoModel distanceModel = new DistanceModel(PojoModelType.DISTANCE);
 						distanceModel.setName(distanceStr);
 						result.add(distanceModel);
 
 						// put next place
-						placeModel = new PlaceModel(ModelType.PLACE);
+						placeModel = new PlaceModel(PojoModelType.PLACE);
 						placeModel.setName(orgins.get(benchmarkIndex));
 						result.add(placeModel);
 						currentPlacePosition = benchmarkIndex;
@@ -116,12 +116,12 @@ public abstract class PlaceTimeFactory {
 				GoogleDistanceElement element = elements.get(0);
 				if ("OK".equals(element.getStatus())) {
 					String distanceStr = element.getDistance().getText();
-					IModel distanceModel = new DistanceModel(ModelType.DISTANCE);
+					IPojoModel distanceModel = new DistanceModel(PojoModelType.DISTANCE);
 					distanceModel.setName(distanceStr);
 					result.add(distanceModel);
 
 					// put first place (return to first place)
-					placeModel = new PlaceModel(ModelType.PLACE);
+					placeModel = new PlaceModel(PojoModelType.PLACE);
 					placeModel.setName(orgins.get(0));
 					result.add(placeModel);
 					currentPlacePosition = 0;

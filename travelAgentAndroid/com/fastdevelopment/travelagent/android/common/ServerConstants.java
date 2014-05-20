@@ -2,8 +2,12 @@ package com.fastdevelopment.travelagent.android.common;
 
 public abstract class ServerConstants {
 
-	public static enum ModelType {
-		PLACE, DISTANCE
+	public static enum PojoModelType {
+		PLACE, DISTANCE, PLAN
+	}
+
+	public static enum OrmModelType {
+		USER, PLAN
 	}
 
 	public static enum CountryCode {
