@@ -152,6 +152,7 @@ public class ScheduleGridView extends DragGridView {
 			if (rc.contains((int) ev.getRawX(), (int) ev.getRawY())) {
 				ScheduleGridAdapter adapter = (ScheduleGridAdapter) getAdapter();
 				final int dragSrcPosition = this.getDragSrcPosition();
+				final Context context = adapter.getContext();
 				IPojoModel dragSrcItem = adapter.getItem(dragSrcPosition);
 				Builder comfirm = new AlertDialog.Builder(this.getContext());
 				comfirm.setTitle(R.string.delete_spot);
@@ -162,16 +163,18 @@ public class ScheduleGridView extends DragGridView {
 					public void onClick(DialogInterface dialog, int whichButton) {
 						try {
 							boolean isSuccess = deleteGridItem(dragSrcPosition);
-
+							Toast toast = null;
 							if (isSuccess) {
-								Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_success), Toast.LENGTH_LONG);
+								toast = Toast.makeText(context, resource.getString(R.string.delete_success), Toast.LENGTH_LONG);
 							} else {
-								Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
+								toast = Toast.makeText(context, resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
 							}
+							toast.show();
 
 						} catch (Exception e) {
 							Log.e(TAG, ExceptionUtils.getStackTrace(e));
-							Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
+							Toast toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
+							toast.show();
 						}
 					};
 				});
@@ -234,22 +237,27 @@ public class ScheduleGridView extends DragGridView {
 					if (json != null) {
 						jsonStr = json.toString();
 					}
+
+					Toast toast = null;
+
 					// add to db
 					Plan plan = new Plan();
 					plan.setName("test plan");
 					plan.setContent(jsonStr);
 					int row = planDao.create(plan);
-
 					if (row > 0) {
 						planId = plan.getId();
-						Toast.makeText(parentView.getContext(), resource.getString(R.string.add_success), Toast.LENGTH_LONG);
+						toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.add_success), Toast.LENGTH_LONG);
 					} else {
-						Toast.makeText(parentView.getContext(), resource.getString(R.string.add_failed), Toast.LENGTH_LONG);
+						toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.add_failed), Toast.LENGTH_LONG);
 					}
+
+					toast.show();
 
 				} catch (Exception e) {
 					Log.e(TAG, ExceptionUtils.getStackTrace(e));
-					Toast.makeText(parentView.getContext(), resource.getString(R.string.add_failed), Toast.LENGTH_LONG);
+					Toast toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.add_failed), Toast.LENGTH_LONG);
+					toast.show();
 				}
 			}
 		});
@@ -268,6 +276,9 @@ public class ScheduleGridView extends DragGridView {
 					if (json != null) {
 						jsonStr = json.toString();
 					}
+
+					Toast toast = null;
+
 					// save to db
 					int row = -1;
 					Plan plan = planDao.queryForId(planId);
@@ -278,14 +289,17 @@ public class ScheduleGridView extends DragGridView {
 
 					if (row > 0) {
 						planId = plan.getId();
-						Toast.makeText(parentView.getContext(), resource.getString(R.string.add_success), Toast.LENGTH_LONG);
+						toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.save_success), Toast.LENGTH_LONG);
 					} else {
-						Toast.makeText(parentView.getContext(), resource.getString(R.string.add_failed), Toast.LENGTH_LONG);
+						toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.save_failed), Toast.LENGTH_LONG);
 					}
+
+					toast.show();
 
 				} catch (Exception e) {
 					Log.e(TAG, ExceptionUtils.getStackTrace(e));
-					Toast.makeText(parentView.getContext(), resource.getString(R.string.add_failed), Toast.LENGTH_LONG);
+					Toast toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.save_failed), Toast.LENGTH_LONG);
+					toast.show();
 				}
 			}
 		});
@@ -304,21 +318,23 @@ public class ScheduleGridView extends DragGridView {
 					public void onClick(DialogInterface dialog, int whichButton) {
 						try {
 							try {
-
+								Toast toast = null;
 								if (planId != -1) {
 									// delete plan to db.
 									int row = planDao.deleteById(planId);
 									if (row > 0) {
-										Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_success), Toast.LENGTH_LONG);
+										toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_success), Toast.LENGTH_LONG);
 									} else {
-										Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
+										toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
 									}
 									// change to plan fragment
 									activity.changeFragement(1);
 								} else {
-									Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_success), Toast.LENGTH_LONG);
+									toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_success), Toast.LENGTH_LONG);
 									fragment.loadScheduleInput();
 								}
+
+								toast.show();
 
 							} catch (Exception e) {
 								Log.e(TAG, ExceptionUtils.getStackTrace(e));
@@ -326,7 +342,8 @@ public class ScheduleGridView extends DragGridView {
 							}
 						} catch (Exception e) {
 							Log.e(TAG, ExceptionUtils.getStackTrace(e));
-							Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
+							Toast toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
+							toast.show();
 						}
 					};
 				});

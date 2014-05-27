@@ -8,6 +8,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.fastdevelopment.travelagent.android.R;
 import com.fastdevelopment.travelagent.android.fragment.NewsFragment;
@@ -18,7 +19,6 @@ import com.fastdevelopment.travelagent.android.orm.DatabaseHelper;
 import com.j256.ormlite.android.apptools.OpenHelperManager;
 
 public class MainActivity extends FragmentActivity {
-
 	private LinearLayout llTabSwipPager;
 	public TabSwipPager tabSwipPager;
 	private List<Fragment> fragmentsList;
@@ -40,12 +40,13 @@ public class MainActivity extends FragmentActivity {
 
 		tabSwipPager = new TabSwipPager(getApplicationContext(), getSupportFragmentManager(), llTabSwipPager);
 		if (!tabSwipPager.setFragmentList(fragmentsList, tags)) {
-			System.out.println("初始化失敗");
+			System.out.println("init failed");
 			finish();
 		}
 	}
 
 	private void initData() {
+
 		fragmentsList = new ArrayList<Fragment>();
 		fragmentsList.add(new ScheduleFragment());
 		fragmentsList.add(new PlansFragment());
@@ -62,7 +63,13 @@ public class MainActivity extends FragmentActivity {
 		return tabSwipPager.changeFragement(index, objects);
 
 	}
-	
+
+	public void showToast(CharSequence text) {
+		Toast toast = Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG);
+		// toast.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 0);
+		toast.show();
+	}
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
