@@ -15,6 +15,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -228,79 +229,44 @@ public class ScheduleGridView extends DragGridView {
 			@Override
 			public void onClick(View v) {
 				// add plan
-				try {
-					ScheduleGridAdapter adapter = (ScheduleGridAdapter) getAdapter();
-					GoogleDistanceMetrix googleDistanceMetrix = adapter.getGoogleDistanceMetrix();
-					// change pojo to string
-					String jsonStr = null;
-					JSONObject json = pojo2JsonParser.parsingPojoToJson(googleDistanceMetrix);
-					if (json != null) {
-						jsonStr = json.toString();
+
+				AlertDialog.Builder editDialog = new AlertDialog.Builder(activity);
+				editDialog.setTitle("--- " + resource.getString(R.string.ti_add_plan) + " ---");
+
+				final EditText editText = new EditText(activity);
+				editText.setHint(resource.getString(R.string.add_plan_hint));
+				editDialog.setView(editText);
+
+				editDialog.setPositiveButton(resource.getString(R.string.ti_add), new DialogInterface.OnClickListener() {
+					// do something when the button is clicked
+					public void onClick(DialogInterface arg0, int arg1) {
+
+						String inputText = editText.getText().toString();
+
+						if (!inputText.isEmpty()) {
+							addPlan(inputText);
+						} else {
+							Toast toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.empty_input), Toast.LENGTH_LONG);
+							toast.show();
+						}
+
 					}
+				});
+				editDialog.setNegativeButton(resource.getString(R.string.ti_cancel), new DialogInterface.OnClickListener() {
+					// do something when the button is clicked
+					public void onClick(DialogInterface arg0, int arg1) {
 
-					Toast toast = null;
-
-					// add to db
-					Plan plan = new Plan();
-					plan.setName("test plan");
-					plan.setContent(jsonStr);
-					int row = planDao.create(plan);
-					if (row > 0) {
-						planId = plan.getId();
-						toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.add_success), Toast.LENGTH_LONG);
-					} else {
-						toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.add_failed), Toast.LENGTH_LONG);
 					}
+				});
+				editDialog.show();
 
-					toast.show();
-
-				} catch (Exception e) {
-					Log.e(TAG, ExceptionUtils.getStackTrace(e));
-					Toast toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.add_failed), Toast.LENGTH_LONG);
-					toast.show();
-				}
 			}
 		});
 
 		imgSave.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				// save plan
-				try {
-
-					ScheduleGridAdapter adapter = (ScheduleGridAdapter) getAdapter();
-					GoogleDistanceMetrix googleDistanceMetrix = adapter.getGoogleDistanceMetrix();
-					// change pojo to string
-					String jsonStr = null;
-					JSONObject json = pojo2JsonParser.parsingPojoToJson(googleDistanceMetrix);
-					if (json != null) {
-						jsonStr = json.toString();
-					}
-
-					Toast toast = null;
-
-					// save to db
-					int row = -1;
-					Plan plan = planDao.queryForId(planId);
-					if (plan != null) {
-						plan.setContent(jsonStr);
-						row = planDao.update(plan);
-					}
-
-					if (row > 0) {
-						planId = plan.getId();
-						toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.save_success), Toast.LENGTH_LONG);
-					} else {
-						toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.save_failed), Toast.LENGTH_LONG);
-					}
-
-					toast.show();
-
-				} catch (Exception e) {
-					Log.e(TAG, ExceptionUtils.getStackTrace(e));
-					Toast toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.save_failed), Toast.LENGTH_LONG);
-					toast.show();
-				}
+				savePlan(planId);
 			}
 		});
 
@@ -308,43 +274,29 @@ public class ScheduleGridView extends DragGridView {
 		imgTrashCan.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+
+				// load plan object
+				String planName = null;
+				if (planId != -1) {
+					Plan plan = getPlan(planId);
+					if (plan != null) {
+						planName = plan.getName();
+					} else {
+						planName = resource.getString(R.string.none_saved);
+					}
+				} else {
+					planName = resource.getString(R.string.none_saved);
+				}
+
 				// return to schedule input
 				Builder comfirm = new AlertDialog.Builder(activity);
 				comfirm.setTitle(R.string.delete_plan);
-				comfirm.setMessage(R.string.delete_plan_confirm);
+				comfirm.setMessage(String.format(resource.getString(R.string.delete_plan_confirm), planName));
 				comfirm.setIcon(android.R.drawable.ic_dialog_alert);
 				comfirm.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int whichButton) {
-						try {
-							try {
-								Toast toast = null;
-								if (planId != -1) {
-									// delete plan to db.
-									int row = planDao.deleteById(planId);
-									if (row > 0) {
-										toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_success), Toast.LENGTH_LONG);
-									} else {
-										toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
-									}
-									// change to plan fragment
-									activity.changeFragement(1);
-								} else {
-									toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_success), Toast.LENGTH_LONG);
-									fragment.loadScheduleInput();
-								}
-
-								toast.show();
-
-							} catch (Exception e) {
-								Log.e(TAG, ExceptionUtils.getStackTrace(e));
-								Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
-							}
-						} catch (Exception e) {
-							Log.e(TAG, ExceptionUtils.getStackTrace(e));
-							Toast toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
-							toast.show();
-						}
+						removePlan(planId);
 					};
 				});
 				comfirm.setNegativeButton(R.string.no, null);
@@ -353,6 +305,153 @@ public class ScheduleGridView extends DragGridView {
 			}
 		});
 
+	}
+
+	protected boolean addPlan(String planName) {
+
+		boolean isSuccess = false;
+
+		try {
+
+			ScheduleGridAdapter adapter = (ScheduleGridAdapter) getAdapter();
+			GoogleDistanceMetrix googleDistanceMetrix = adapter.getGoogleDistanceMetrix();
+			// change pojo to string
+			String jsonStr = null;
+			JSONObject json = pojo2JsonParser.parsingPojoToJson(googleDistanceMetrix);
+			if (json != null) {
+				jsonStr = json.toString();
+			}
+
+			Toast toast = null;
+
+			// add to db
+			Plan plan = new Plan();
+			plan.setName(planName);
+			plan.setContent(jsonStr);
+			int row = planDao.create(plan);
+			if (row > 0) {
+				planId = plan.getId();
+				toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.add_success), Toast.LENGTH_LONG);
+				// change to plan fragment
+				activity.changeFragement(1);
+				isSuccess = true;
+			} else {
+				toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.add_failed), Toast.LENGTH_LONG);
+				isSuccess = false;
+			}
+
+			toast.show();
+
+		} catch (Exception e) {
+			Log.e(TAG, ExceptionUtils.getStackTrace(e));
+			Toast toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.add_failed), Toast.LENGTH_LONG);
+			toast.show();
+		}
+		return isSuccess;
+	}
+
+	protected boolean savePlan(int planId) {
+
+		boolean isSuccess = false;
+		// save plan
+		try {
+
+			ScheduleGridAdapter adapter = (ScheduleGridAdapter) getAdapter();
+			GoogleDistanceMetrix googleDistanceMetrix = adapter.getGoogleDistanceMetrix();
+			// change pojo to string
+			String jsonStr = null;
+			JSONObject json = pojo2JsonParser.parsingPojoToJson(googleDistanceMetrix);
+			if (json != null) {
+				jsonStr = json.toString();
+			}
+
+			Toast toast = null;
+
+			// save to db
+			int row = -1;
+			Plan plan = getPlan(planId);
+			if (plan != null) {
+				plan.setContent(jsonStr);
+				row = planDao.update(plan);
+			}
+
+			if (row > 0) {
+				planId = plan.getId();
+				toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.save_success), Toast.LENGTH_LONG);
+				// change to plan fragment
+				activity.changeFragement(1);
+				isSuccess = true;
+			} else {
+				toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.save_failed), Toast.LENGTH_LONG);
+				isSuccess = false;
+			}
+
+			toast.show();
+
+		} catch (Exception e) {
+			Log.e(TAG, ExceptionUtils.getStackTrace(e));
+			Toast toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.save_failed), Toast.LENGTH_LONG);
+			toast.show();
+		}
+
+		return isSuccess;
+
+	}
+
+	protected boolean removePlan(int planId) {
+
+		boolean isSuccess = false;
+
+		try {
+			try {
+				Toast toast = null;
+				if (planId != -1) {
+					// delete plan to db.
+					int row = planDao.deleteById(planId);
+					if (row > 0) {
+						toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_success), Toast.LENGTH_LONG);
+						isSuccess = true;
+					} else {
+						toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
+						isSuccess = false;
+					}
+					// change to plan fragment
+					activity.changeFragement(1);
+				} else {
+					toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_success), Toast.LENGTH_LONG);
+					fragment.loadScheduleInput();
+					isSuccess = true;
+				}
+
+				toast.show();
+
+			} catch (Exception e) {
+				Log.e(TAG, ExceptionUtils.getStackTrace(e));
+				Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
+			}
+		} catch (Exception e) {
+			Log.e(TAG, ExceptionUtils.getStackTrace(e));
+			Toast toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_failed), Toast.LENGTH_LONG);
+			toast.show();
+		}
+
+		return isSuccess;
+
+	}
+
+	protected Plan getPlan(int planId) {
+
+		Plan plan = null;
+		try {
+			if (planId != -1) {
+
+				plan = planDao.queryForId(planId);
+
+			}
+		} catch (Exception e) {
+			Log.e(TAG, ExceptionUtils.getStackTrace(e));
+		}
+		return plan;
 	}
 
 	public View getParentView() {

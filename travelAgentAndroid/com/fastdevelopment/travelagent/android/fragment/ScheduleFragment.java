@@ -64,7 +64,7 @@ public class ScheduleFragment extends Fragment implements IFragment {
 		progressBar.setVisibility(View.GONE);
 
 		// 建立一個ArrayAdapter物件，並放置下拉選單的內容
-		String[] values = { context.getResources().getString(R.string.select_country), CountryCode.TW.getCountryName(), CountryCode.FR.getCountryName(), CountryCode.US.getCountryName() };
+		String[] values = { context.getResources().getString(R.string.select_country), CountryCode.FR.getCountryName(), CountryCode.US.getCountryName() };
 		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this.getActivity(), R.layout.simple_spinner_item, values);
 
 		// 設定下拉選單的樣式
