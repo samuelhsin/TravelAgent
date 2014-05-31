@@ -9,6 +9,7 @@ import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Rect;
 import android.util.AttributeSet;
@@ -23,6 +24,7 @@ import com.fastdevelopment.travelagent.android.R;
 import com.fastdevelopment.travelagent.android.activity.MainActivity;
 import com.fastdevelopment.travelagent.android.common.PlaceTimeFactory;
 import com.fastdevelopment.travelagent.android.common.ServerConfig;
+import com.fastdevelopment.travelagent.android.common.ServerConstants;
 import com.fastdevelopment.travelagent.android.component.DragGridView;
 import com.fastdevelopment.travelagent.android.fragment.ScheduleFragment;
 import com.fastdevelopment.travelagent.android.model.IPojoModel;
@@ -38,7 +40,7 @@ public class ScheduleGridView extends DragGridView {
 	private ScheduleGridView instance = this;
 	protected ImageView imgTrashCan;
 	protected ImageView imgSave;
-	protected ImageView imgAdd;
+	protected ImageView imgAddPalce;
 	protected View parentView;
 	private int planId = -1;
 	protected Resources resource = ServerConfig.resource;
@@ -194,14 +196,10 @@ public class ScheduleGridView extends DragGridView {
 
 	}
 
-	public void onAddPlace(View v) {
-		String a = "test";
-	}
-
 	protected void settingImgViews() {
 		// get add img
-		ImageView imgAdd = (ImageView) this.parentView.findViewById(R.id.imgAdd);
-		this.imgAdd = imgAdd;
+		ImageView imgAddPlace = (ImageView) this.parentView.findViewById(R.id.imgAdd);
+		this.imgAddPalce = imgAddPlace;
 
 		// get save img
 		ImageView imgSave = (ImageView) this.parentView.findViewById(R.id.imgSave);
@@ -211,62 +209,62 @@ public class ScheduleGridView extends DragGridView {
 		ImageView imgTrashCan = (ImageView) this.parentView.findViewById(R.id.imgTrashCan);
 		this.imgTrashCan = imgTrashCan;
 
-		if (planId == -1) {
-			// new plan
-			imgSave.setVisibility(View.INVISIBLE);
-			imgSave.setClickable(false);
-			imgAdd.setVisibility(View.VISIBLE);
-			imgAdd.setClickable(true);
-		} else {
-			// old plan
-			imgSave.setVisibility(View.VISIBLE);
-			imgSave.setClickable(true);
-			imgAdd.setVisibility(View.INVISIBLE);
-			imgAdd.setClickable(false);
-		}
-
-		imgAdd.setOnClickListener(new OnClickListener() {
+		imgAddPlace.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				// add plan
 
-				AlertDialog.Builder editDialog = new AlertDialog.Builder(activity);
-				editDialog.setTitle("--- " + resource.getString(R.string.ti_add_plan) + " ---");
+				ScheduleGridAdapter adapter = (ScheduleGridAdapter) getAdapter();
+				GoogleDistanceMetrix googleDistanceMetrix = adapter.getGoogleDistanceMetrix();
 
-				final EditText editText = new EditText(activity);
-				editText.setHint(resource.getString(R.string.add_plan_hint));
-				editDialog.setView(editText);
-
-				editDialog.setPositiveButton(resource.getString(R.string.ti_add), new DialogInterface.OnClickListener() {
-					// do something when the button is clicked
-					public void onClick(DialogInterface arg0, int arg1) {
-
-						String inputText = editText.getText().toString();
-
-						if (!inputText.isEmpty()) {
-							addPlan(inputText);
-						} else {
-							Toast toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.empty_input), Toast.LENGTH_LONG);
-							toast.show();
-						}
-
-					}
-				});
-				editDialog.setNegativeButton(resource.getString(R.string.ti_cancel), new DialogInterface.OnClickListener() {
-					// do something when the button is clicked
-					public void onClick(DialogInterface arg0, int arg1) {
-
-					}
-				});
-				editDialog.show();
-
+				// add place
+				Intent intent = new Intent("com.fastdevelopment.travelagent.android.activity.MapActivity");
+				intent.putExtra(ServerConstants.IIntentDataKey.GOOGLE_DISTANCE_METRIX, googleDistanceMetrix);
+				activity.startActivity(intent);
 			}
 		});
 
 		imgSave.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				savePlan(planId);
+
+				if (planId == -1) {
+					// new plan
+
+					AlertDialog.Builder editDialog = new AlertDialog.Builder(activity);
+					editDialog.setTitle("--- " + resource.getString(R.string.ti_add_plan) + " ---");
+
+					final EditText editText = new EditText(activity);
+					editText.setHint(resource.getString(R.string.add_plan_hint));
+					editDialog.setView(editText);
+
+					editDialog.setPositiveButton(resource.getString(R.string.ti_add), new DialogInterface.OnClickListener() {
+						// do something when the button is clicked
+						public void onClick(DialogInterface arg0, int arg1) {
+
+							String inputText = editText.getText().toString();
+
+							if (!inputText.isEmpty()) {
+								addPlan(inputText);
+							} else {
+								Toast toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.empty_input), Toast.LENGTH_LONG);
+								toast.show();
+							}
+
+						}
+					});
+					editDialog.setNegativeButton(resource.getString(R.string.ti_cancel), new DialogInterface.OnClickListener() {
+						// do something when the button is clicked
+						public void onClick(DialogInterface arg0, int arg1) {
+
+						}
+					});
+					editDialog.show();
+
+				} else {
+					// existed plan
+					savePlan(planId);
+				}
+
 			}
 		});
 

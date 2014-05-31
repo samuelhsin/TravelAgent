@@ -15,7 +15,7 @@ import com.j256.ormlite.table.TableUtils;
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 
 	private static final String DATABASE_NAME = "ormlite.db";
-	private static final int DATABASE_VERSION = 2;
+	private static final int DATABASE_VERSION = 3;
 	private static final String TAG = DatabaseHelper.class.getSimpleName();
 
 	public DatabaseHelper(Context context) {
@@ -40,6 +40,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 		try {
 	        Log.i(DatabaseHelper.class.getName(), "onUpgrade");
 	        TableUtils.dropTable(connectionSource, User.class, true);
+	        TableUtils.dropTable(connectionSource, Plan.class, true);
 	        // after we drop the old databases, we create the new ones
 	        onCreate(db, connectionSource);
 	    } catch (Exception e) {

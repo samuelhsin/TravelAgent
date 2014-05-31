@@ -63,6 +63,11 @@ public abstract class ServerConstants {
 		}
 	}
 
+	public static interface IIntentDataKey {
+		public static final String PLAIN_MODEL = "planModel";
+		public static final String GOOGLE_DISTANCE_METRIX = "googleDistanceMetrix";
+	}
+
 	public static interface IBundleDataKey {
 		public static final String GOOGLE_DISTANCE_METRIX = "googleDistanceMetrix";
 	}

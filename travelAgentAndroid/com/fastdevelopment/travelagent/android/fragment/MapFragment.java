@@ -40,7 +40,7 @@ public class MapFragment extends Fragment implements IFragment {
 				parent.removeView(view);
 		}
 		try {
-			view = inflater.inflate(R.layout.activity_map, container, false);
+			view = inflater.inflate(R.layout.activity_mapv1, container, false);
 			setUpMapIfNeeded();
 		} catch (InflateException e) {
 			// Log.wtf("S*****", e.getMessage());
