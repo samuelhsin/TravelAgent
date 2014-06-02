@@ -32,7 +32,7 @@ public class MapOverlay extends Overlay {
 			Point screenPts = new Point();
 			mapView.getProjection().toPixels(p, screenPts);
 
-			Bitmap bmp = BitmapFactory.decodeResource(ServerConfig.resource, R.drawable.pin);
+			Bitmap bmp = BitmapFactory.decodeResource(ServerConfig.resources, R.drawable.pin);
 			canvas.drawBitmap(bmp, screenPts.x, screenPts.y - 50, null);
 		}
 

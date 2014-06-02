@@ -26,8 +26,8 @@ public class TabSwipPager {
 		this.parentView = parentView;
 	}
 
-	public boolean changeFragement(int index, Object... objects) throws Exception {
-		return pagerAdapter.changeFragement(index, objects);
+	public boolean changeFragement(int index, int fragmentEventId, Object... objects) throws Exception {
+		return pagerAdapter.changeFragement(index, fragmentEventId, objects);
 	}
 
 	public boolean setFragmentList(List<Fragment> fragmentsList, String[] tags) {

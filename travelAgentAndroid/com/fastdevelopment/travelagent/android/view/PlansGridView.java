@@ -14,7 +14,7 @@ public class PlansGridView extends GridView {
 
 	private PlansGridView instance = this;
 	protected View parentView;
-	protected Resources resource = ServerConfig.resource;
+	protected Resources resource = ServerConfig.resources;
 	protected PlansFragment fragment;
 	protected MainActivity activity;
 

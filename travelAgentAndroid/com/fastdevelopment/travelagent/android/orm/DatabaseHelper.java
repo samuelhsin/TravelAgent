@@ -15,7 +15,7 @@ import com.j256.ormlite.table.TableUtils;
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 
 	private static final String DATABASE_NAME = "ormlite.db";
-	private static final int DATABASE_VERSION = 3;
+	private static final int DATABASE_VERSION = 4;
 	private static final String TAG = DatabaseHelper.class.getSimpleName();
 
 	public DatabaseHelper(Context context) {

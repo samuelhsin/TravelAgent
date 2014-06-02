@@ -4,10 +4,10 @@ import android.content.res.Resources;
 
 public abstract class ServerConfig {
 
-	public static Resources resource;
+	public static Resources resources;
 
 	public final static void init(Resources resource) {
-		ServerConfig.resource = resource;
+		ServerConfig.resources = resource;
 	}
 
 }

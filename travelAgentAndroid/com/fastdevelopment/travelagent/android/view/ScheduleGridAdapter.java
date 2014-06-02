@@ -24,7 +24,7 @@ public class ScheduleGridAdapter extends ArrayAdapter<IPojoModel> {
 
 	private GoogleDistanceMetrix googleDistanceMetrix;
 
-	private Resources resources = ServerConfig.resource;
+	private Resources resources = ServerConfig.resources;
 
 	public ScheduleGridAdapter(Context context, List<IPojoModel> objects, GoogleDistanceMetrix googleDistanceMetrix) {
 		super(context, 0, objects);

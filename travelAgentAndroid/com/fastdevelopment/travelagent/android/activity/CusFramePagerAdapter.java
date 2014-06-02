@@ -32,13 +32,14 @@ public class CusFramePagerAdapter extends FragmentPagerAdapter implements OnPage
 		}
 	}
 
-	public boolean changeFragement(int index, Object... objects) throws Exception {
+	public boolean changeFragement(int index, int fragmentEventId, Object... objects) throws Exception {
 
 		viewPager.setCurrentItem(index);
 
 		IFragment focusfragment = (IFragment) getItem(index);
-		focusfragment.onFocusChange(viewPager.findViewById(index), true);
-		focusfragment.passValuesByFocus(objects);
+
+		focusfragment.onFocusChange(focusfragment.getView(), true);
+		focusfragment.passValuesByFocus(fragmentEventId, objects);
 
 		return true;
 	}

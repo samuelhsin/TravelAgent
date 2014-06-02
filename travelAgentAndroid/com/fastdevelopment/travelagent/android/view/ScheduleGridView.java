@@ -25,12 +25,16 @@ import com.fastdevelopment.travelagent.android.activity.MainActivity;
 import com.fastdevelopment.travelagent.android.common.PlaceTimeFactory;
 import com.fastdevelopment.travelagent.android.common.ServerConfig;
 import com.fastdevelopment.travelagent.android.common.ServerConstants;
+import com.fastdevelopment.travelagent.android.common.ServerConstants.FragmentEvent;
+import com.fastdevelopment.travelagent.android.common.ServerConstants.FragmentIndex;
+import com.fastdevelopment.travelagent.android.common.ServerConstants.IStartActivityRequestCode;
 import com.fastdevelopment.travelagent.android.component.DragGridView;
 import com.fastdevelopment.travelagent.android.fragment.ScheduleFragment;
 import com.fastdevelopment.travelagent.android.model.IPojoModel;
 import com.fastdevelopment.travelagent.android.orm.model.Plan;
 import com.fastdevelopment.travelagent.android.pojo2json.Pojo2JsonParser;
 import com.fastdevelopment.travelagent.android.thirdparty.data.GoogleDistanceMetrix;
+import com.google.android.maps.MapActivity;
 import com.j256.ormlite.dao.Dao;
 
 public class ScheduleGridView extends DragGridView {
@@ -43,11 +47,13 @@ public class ScheduleGridView extends DragGridView {
 	protected ImageView imgAddPalce;
 	protected View parentView;
 	private int planId = -1;
-	protected Resources resource = ServerConfig.resource;
+	protected Resources resource = ServerConfig.resources;
 	protected ScheduleFragment fragment;
 	protected MainActivity activity;
 	private Pojo2JsonParser pojo2JsonParser = new Pojo2JsonParser();
 	private Dao<Plan, Integer> planDao = null;
+	private String startCountryCode = null;
+	private String endCountryCode = null;
 
 	public ScheduleGridView(Context context) {
 		super(context);
@@ -217,9 +223,13 @@ public class ScheduleGridView extends DragGridView {
 				GoogleDistanceMetrix googleDistanceMetrix = adapter.getGoogleDistanceMetrix();
 
 				// add place
+				//Intent intent = new Intent(activity, MapActivity.class);
 				Intent intent = new Intent("com.fastdevelopment.travelagent.android.activity.MapActivity");
 				intent.putExtra(ServerConstants.IIntentDataKey.GOOGLE_DISTANCE_METRIX, googleDistanceMetrix);
-				activity.startActivity(intent);
+				intent.putExtra(ServerConstants.IIntentDataKey.START_COUNTRY_CODE, startCountryCode);
+				intent.putExtra(ServerConstants.IIntentDataKey.END_COUNTRY_CODE, endCountryCode);
+				//activity.startActivity(intent);
+				activity.startActivityForResult(intent, IStartActivityRequestCode.PICK_PLACES);
 			}
 		});
 
@@ -326,12 +336,14 @@ public class ScheduleGridView extends DragGridView {
 			Plan plan = new Plan();
 			plan.setName(planName);
 			plan.setContent(jsonStr);
+			plan.setStartCountryCode(startCountryCode);
+			plan.setEndCountryCode(endCountryCode);
 			int row = planDao.create(plan);
 			if (row > 0) {
 				planId = plan.getId();
 				toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.add_success), Toast.LENGTH_LONG);
 				// change to plan fragment
-				activity.changeFragement(1);
+				activity.changeFragement(FragmentIndex.PLAN, FragmentEvent.NONE);
 				isSuccess = true;
 			} else {
 				toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.add_failed), Toast.LENGTH_LONG);
@@ -370,6 +382,8 @@ public class ScheduleGridView extends DragGridView {
 			Plan plan = getPlan(planId);
 			if (plan != null) {
 				plan.setContent(jsonStr);
+				plan.setStartCountryCode(startCountryCode);
+				plan.setEndCountryCode(endCountryCode);
 				row = planDao.update(plan);
 			}
 
@@ -377,7 +391,7 @@ public class ScheduleGridView extends DragGridView {
 				planId = plan.getId();
 				toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.save_success), Toast.LENGTH_LONG);
 				// change to plan fragment
-				activity.changeFragement(1);
+				activity.changeFragement(FragmentIndex.PLAN, FragmentEvent.NONE);
 				isSuccess = true;
 			} else {
 				toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.save_failed), Toast.LENGTH_LONG);
@@ -414,7 +428,7 @@ public class ScheduleGridView extends DragGridView {
 						isSuccess = false;
 					}
 					// change to plan fragment
-					activity.changeFragement(1);
+					activity.changeFragement(FragmentIndex.PLAN, FragmentEvent.NONE);
 				} else {
 					toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_success), Toast.LENGTH_LONG);
 					fragment.loadScheduleInput();
@@ -475,6 +489,22 @@ public class ScheduleGridView extends DragGridView {
 
 	public void setPlanId(int planId) {
 		this.planId = planId;
+	}
+
+	public String getStartCountryCode() {
+		return startCountryCode;
+	}
+
+	public void setStartCountryCode(String startCountryCode) {
+		this.startCountryCode = startCountryCode;
+	}
+
+	public String getEndCountryCode() {
+		return endCountryCode;
+	}
+
+	public void setEndCountryCode(String endCountryCode) {
+		this.endCountryCode = endCountryCode;
 	}
 
 }

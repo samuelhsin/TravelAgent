@@ -4,6 +4,8 @@ import com.fastdevelopment.travelagent.android.common.ServerConstants.PojoModelT
 
 public class PlanModel extends BaseModel {
 
+	private String startCountryCode;
+	private String endCountryCode;
 	private String content;
 
 	public PlanModel(PojoModelType modelType) {
@@ -16,6 +18,22 @@ public class PlanModel extends BaseModel {
 
 	public void setContent(String content) {
 		this.content = content;
+	}
+
+	public String getStartCountryCode() {
+		return startCountryCode;
+	}
+
+	public void setStartCountryCode(String startCountryCode) {
+		this.startCountryCode = startCountryCode;
+	}
+
+	public String getEndCountryCode() {
+		return endCountryCode;
+	}
+
+	public void setEndCountryCode(String endCountryCode) {
+		this.endCountryCode = endCountryCode;
 	}
 
 }

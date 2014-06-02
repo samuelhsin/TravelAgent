@@ -86,9 +86,8 @@ public class MapFragment extends Fragment implements IFragment {
 	}
 
 	@Override
-	public void passValuesByFocus(Object... objects) throws Exception {
+	public void passValuesByFocus(int fragmentEventId, Object... objects) throws Exception {
 		// TODO Auto-generated method stub
-
 	}
 
 	/****

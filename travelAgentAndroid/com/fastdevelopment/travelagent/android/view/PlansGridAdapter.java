@@ -21,7 +21,7 @@ public class PlansGridAdapter extends ArrayAdapter<IPojoModel> {
 
 	private String TAG = this.getClass().getSimpleName();
 
-	private Resources resources = ServerConfig.resource;
+	private Resources resources = ServerConfig.resources;
 
 	public PlansGridAdapter(Context context, List<IPojoModel> objects) {
 		super(context, 0, objects);

@@ -25,7 +25,7 @@ public abstract class ServerConstants {
 			}
 		}
 
-		public String getString() {
+		public String getLowerCaseString() {
 			switch (this) {
 			case FR:
 				return "fr";
@@ -63,12 +63,37 @@ public abstract class ServerConstants {
 		}
 	}
 
+	public static interface FragmentIndex {
+		public static final int SCHEDULE = 0;
+		public static final int PLAN = 1;
+		public static final int NEWS = 2;
+		public static final int SETTING = 3;
+	}
+
+	public static interface FragmentEvent {
+		public static final int NONE = 0;
+		public static final int LOAD_PLAN = 1;
+		public static final int SCHEDULE_NEW_PLACES = 2;
+	}
+	
+	public static interface IStartActivityRequestCode {
+		public static final int NONE = 0;
+		public static final int PICK_PLACES = 1;
+	}
+
 	public static interface IIntentDataKey {
 		public static final String PLAIN_MODEL = "planModel";
 		public static final String GOOGLE_DISTANCE_METRIX = "googleDistanceMetrix";
+		public static final String START_COUNTRY_CODE = "startCountryCode";
+		public static final String END_COUNTRY_CODE = "endCountryCode";
+		public static final String START_FRAGMENT_INDEX = "startFragmentIndex";
+		public static final String FRAGMENT_EVENT_ID = "fragmentEventId";
+		public static final String PLACES = "places";
 	}
 
 	public static interface IBundleDataKey {
+		public static final String START_COUNTRY_CODE = "startCountryCode";
+		public static final String END_COUNTRY_CODE = "endCountryCode";
 		public static final String GOOGLE_DISTANCE_METRIX = "googleDistanceMetrix";
 	}
 

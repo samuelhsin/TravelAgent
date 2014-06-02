@@ -15,6 +15,12 @@ public class Plan implements IOrmModel {
 	@DatabaseField(dataType = DataType.STRING)
 	@SerializedName("content")
 	private String content;
+	@DatabaseField(dataType = DataType.STRING)
+	@SerializedName("startCountryCode")
+	private String startCountryCode;
+	@DatabaseField(dataType = DataType.STRING)
+	@SerializedName("endCountryCode")
+	private String endCountryCode;
 
 	public int getId() {
 		return id;
@@ -38,6 +44,22 @@ public class Plan implements IOrmModel {
 
 	public void setContent(String content) {
 		this.content = content;
+	}
+
+	public String getStartCountryCode() {
+		return startCountryCode;
+	}
+
+	public void setStartCountryCode(String startCountryCode) {
+		this.startCountryCode = startCountryCode;
+	}
+
+	public String getEndCountryCode() {
+		return endCountryCode;
+	}
+
+	public void setEndCountryCode(String endCountryCode) {
+		this.endCountryCode = endCountryCode;
 	}
 
 }

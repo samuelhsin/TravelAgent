@@ -1,6 +1,7 @@
 package com.fastdevelopment.travelagent.android.thirdparty;
 
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
@@ -49,10 +50,41 @@ public class ThirdPartyHandler {
 
 				FactualQuery factualQuery = querySpotsToFactualApi(countryCode);
 
-				GoogleDistanceMetrix googleDistanceMetrix = queryDistanceMetrixToGoogleApi(factualQuery, factualQuery);
+				GoogleDistanceMetrix googleDistanceMetrix = queryDistanceMetrixToGoogleApiByFactualQueryObject(factualQuery, factualQuery);
 
 				Message msg = new Message();
-				Bundle data = BundleDataFactory.createBundleData(googleDistanceMetrix);
+				Bundle data = BundleDataFactory.createBundleData(googleDistanceMetrix, countryCode.toString(), countryCode.toString());
+				msg.setData(data);
+				httpResponseHandler.sendMessage(msg);
+
+			}
+		};
+
+		queue.put(new Request(work));
+
+		return true;
+
+	}
+
+	public boolean invokeDistanceTimeEvent(final Handler httpResponseHandler, final ArrayList<String> places, final CountryCode countryCode) throws Exception {
+
+		ThirdPartyHandlerWorkObject work = new ThirdPartyHandlerWorkObject() {
+			@Override
+			public void toDo() throws Exception {
+
+				StringBuffer spots = new StringBuffer();
+				for (Iterator<String> iterator = places.iterator(); iterator.hasNext();) {
+					String place = iterator.next();
+					spots.append(place);
+					if (iterator.hasNext()) {
+						spots.append("|");
+					}
+				}
+
+				GoogleDistanceMetrix googleDistanceMetrix = queryDistanceMetrixToGoogleApi(spots.toString(), spots.toString());
+
+				Message msg = new Message();
+				Bundle data = BundleDataFactory.createBundleData(googleDistanceMetrix, countryCode.toString(), countryCode.toString());
 				msg.setData(data);
 				httpResponseHandler.sendMessage(msg);
 
@@ -71,13 +103,13 @@ public class ThirdPartyHandler {
 		//
 
 		// Create an authenticated handle to Factual
-		Factual factual = new Factual(ServerConfig.resource.getString(R.string.factual_key), ServerConfig.resource.getString(R.string.factual_secret));
+		Factual factual = new Factual(ServerConfig.resources.getString(R.string.factual_key), ServerConfig.resources.getString(R.string.factual_secret));
 
 		// get 2 random records from Factual's Places table:
 		// String jsonStrResponse = factual.fetch(IFactualTableName.PLACES, new Query().limit(2)).getJson();
 
 		Query q = new Query();
-		q.and(q.field(IFactualTableName.COUNTRY).isEqual(countryCode.toString())).limit(3);
+		q.and(q.field(IFactualTableName.COUNTRY).isEqual(countryCode.getLowerCaseString())).limit(3);
 		String jsonStrResponse = factual.fetch(IFactualTableName.PLACES, q).getJson();
 
 		FactualQuery factualQuery = new FactualQuery();
@@ -94,7 +126,34 @@ public class ThirdPartyHandler {
 
 	}
 
-	protected GoogleDistanceMetrix queryDistanceMetrixToGoogleApi(FactualQuery factualQueryForOrgins, FactualQuery factualQueryForDestinations) throws Exception {
+	protected GoogleDistanceMetrix queryDistanceMetrixToGoogleApiByFactualQueryObject(FactualQuery factualQueryForOrgins, FactualQuery factualQueryForDestinations) throws Exception {
+
+		StringBuffer originSpot = new StringBuffer();
+		List<FactualPlace> orgins = factualQueryForOrgins.getResponse().getData();
+		for (Iterator<FactualPlace> iterator = orgins.iterator(); iterator.hasNext();) {
+			FactualPlace orgin = iterator.next();
+			originSpot.append(orgin.getLatitude() + "," + orgin.getLongitude());
+			if (iterator.hasNext()) {
+				originSpot.append("|");
+			}
+		}
+
+		StringBuffer destinationSpot = new StringBuffer();
+		List<FactualPlace> destinations = factualQueryForDestinations.getResponse().getData();
+		for (Iterator<FactualPlace> iterator = destinations.iterator(); iterator.hasNext();) {
+			FactualPlace destination = iterator.next();
+			destinationSpot.append(destination.getLatitude() + "," + destination.getLongitude());
+			if (iterator.hasNext()) {
+				destinationSpot.append("|");
+			}
+		}
+
+		GoogleDistanceMetrix googleDistanceMetrix = queryDistanceMetrixToGoogleApi(originSpot.toString(), destinationSpot.toString());
+
+		return googleDistanceMetrix;
+	}
+
+	protected GoogleDistanceMetrix queryDistanceMetrixToGoogleApi(String originSpot, String destinationSpot) throws Exception {
 		//
 		// http request.
 		//
@@ -102,36 +161,16 @@ public class ThirdPartyHandler {
 		StringBuffer url = new StringBuffer();
 		try {
 
-			StringBuffer originSpot = new StringBuffer();
-			List<FactualPlace> orgins = factualQueryForOrgins.getResponse().getData();
-			for (Iterator<FactualPlace> iterator = orgins.iterator(); iterator.hasNext();) {
-				FactualPlace orgin = iterator.next();
-				originSpot.append(orgin.getLatitude() + "," + orgin.getLongitude());
-				if (iterator.hasNext()) {
-					originSpot.append("|");
-				}
-			}
-
-			StringBuffer destinationSpot = new StringBuffer();
-			List<FactualPlace> destinations = factualQueryForDestinations.getResponse().getData();
-			for (Iterator<FactualPlace> iterator = destinations.iterator(); iterator.hasNext();) {
-				FactualPlace destination = iterator.next();
-				destinationSpot.append(destination.getLatitude() + "," + destination.getLongitude());
-				if (iterator.hasNext()) {
-					destinationSpot.append("|");
-				}
-			}
-
 			// google distance matrix api : (for distance time)
 			url.append(IGoogleDistanceMetrixApiConst.JSON_URL);
 			url.append("?");
 			url.append(IGoogleDistanceMetrixApiConst.PARAM_ORIGINS);
 			url.append("=");
-			url.append(URLEncoder.encode(originSpot.toString(), Encode.UTF_8.toString()));
+			url.append(URLEncoder.encode(originSpot, Encode.UTF_8.toString()));
 			url.append("&");
 			url.append(IGoogleDistanceMetrixApiConst.PARAM_DESTINATIONS);
 			url.append("=");
-			url.append(URLEncoder.encode(destinationSpot.toString(), Encode.UTF_8.toString()));
+			url.append(URLEncoder.encode(destinationSpot, Encode.UTF_8.toString()));
 			url.append("&");
 			url.append(IGoogleDistanceMetrixApiConst.PARAM_MODE);
 			url.append("=");
@@ -139,7 +178,7 @@ public class ThirdPartyHandler {
 			url.append("&");
 			url.append(IGoogleDistanceMetrixApiConst.PARAM_LANGUAGE);
 			url.append("=");
-			url.append(URLEncoder.encode(ServerConfig.resource.getConfiguration().locale.toString(), Encode.UTF_8.toString()));
+			url.append(URLEncoder.encode(ServerConfig.resources.getConfiguration().locale.toString(), Encode.UTF_8.toString()));
 			url.append("&");
 			url.append(IGoogleDistanceMetrixApiConst.PARAM_SENOR);
 			url.append("=");
@@ -171,7 +210,7 @@ public class ThirdPartyHandler {
 		// http request.
 		//
 
-		String googleApisServerKey = ServerConfig.resource.getString(R.string.google_apis_android_server_key);
+		String googleApisServerKey = ServerConfig.resources.getString(R.string.google_apis_android_server_key);
 
 		// OAuthHmacSigner a;
 

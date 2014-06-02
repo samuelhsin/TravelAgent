@@ -1,5 +1,6 @@
 package com.fastdevelopment.travelagent.android.fragment;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -28,6 +29,7 @@ import android.widget.Toast;
 import com.fastdevelopment.travelagent.android.R;
 import com.fastdevelopment.travelagent.android.common.PlaceTimeFactory;
 import com.fastdevelopment.travelagent.android.common.ServerConstants.CountryCode;
+import com.fastdevelopment.travelagent.android.common.ServerConstants.FragmentEvent;
 import com.fastdevelopment.travelagent.android.common.ServerConstants.IBundleDataKey;
 import com.fastdevelopment.travelagent.android.model.IPojoModel;
 import com.fastdevelopment.travelagent.android.thirdparty.ThirdPartyHandler;
@@ -41,8 +43,8 @@ public class ScheduleFragment extends Fragment implements IFragment {
 	private String TAG = this.getClass().getSimpleName();
 	private ProgressBar progressBar;
 	private GoogleMap map;
-	private Handler httpResponseHandler;
 	private Context context;
+	private Handler httpResponseHandler;
 	private FrameLayout wholeView;
 	private LinearLayout formView;
 	private int shortAnimationDuration = 1000;
@@ -56,9 +58,9 @@ public class ScheduleFragment extends Fragment implements IFragment {
 		formView = (LinearLayout) wholeView.findViewById(R.id.llt_fragment_schedule);
 		// map = ((SupportMapFragment) getFragmentManager().findFragmentById(R.id.support_map_fragment)).getMap();
 
-		// init message handler
+		//init hanlder
 		initMessageHandler();
-
+		
 		final Spinner spinner = (Spinner) wholeView.findViewById(R.id.spinner_where);
 		progressBar = (ProgressBar) wholeView.findViewById(R.id.progressBar_in_fragment_schedule);
 		progressBar.setVisibility(View.GONE);
@@ -172,7 +174,7 @@ public class ScheduleFragment extends Fragment implements IFragment {
 
 	}
 
-	public void loadScheduleResult(int planId, GoogleDistanceMetrix result) throws Exception {
+	public void loadScheduleResult(int planId, GoogleDistanceMetrix result, String startCountryCode, String endCountryCode) throws Exception {
 
 		wholeView.removeViewAt(0);
 
@@ -183,6 +185,8 @@ public class ScheduleFragment extends Fragment implements IFragment {
 		scheduleGridView.setPlanId(planId);
 		scheduleGridView.setParentView(scheduleView);
 		scheduleGridView.setFragment(this);
+		scheduleGridView.setStartCountryCode(startCountryCode);
+		scheduleGridView.setEndCountryCode(endCountryCode);
 
 		// init schedule list
 		List<IPojoModel> modelList = PlaceTimeFactory.calculatePlaceTimePath(result);
@@ -194,28 +198,35 @@ public class ScheduleFragment extends Fragment implements IFragment {
 	}
 
 	@SuppressLint("HandlerLeak")
-	protected void initMessageHandler() {
-		httpResponseHandler = new Handler() {
-			@Override
-			public void handleMessage(Message msg) {
-				super.handleMessage(msg);
-				Bundle data = msg.getData();
-				if (data != null) {
-					GoogleDistanceMetrix result = (GoogleDistanceMetrix) data.getSerializable(IBundleDataKey.GOOGLE_DISTANCE_METRIX);
-					Log.i(TAG, "scheduling from third party return status-->" + result.getStatus());
-					load(false);
-					try {
-						// planId: -1 , is not save into db.
-						loadScheduleResult(-1, result);
-					} catch (Exception e) {
-						Log.e(TAG, ExceptionUtils.getStackTrace(e));
-					}
-				} else {
-					Toast.makeText(context, context.getResources().getString(R.string.return_error), Toast.LENGTH_LONG).show();
-				}
+	protected Handler initMessageHandler() {
 
-			}
-		};
+		if (httpResponseHandler == null) {
+			httpResponseHandler = new Handler() {
+				@Override
+				public void handleMessage(Message msg) {
+					super.handleMessage(msg);
+					Bundle data = msg.getData();
+					if (data != null) {
+						GoogleDistanceMetrix result = (GoogleDistanceMetrix) data.getSerializable(IBundleDataKey.GOOGLE_DISTANCE_METRIX);
+						String startCountryCode = (String) data.getCharSequence(IBundleDataKey.START_COUNTRY_CODE);
+						String endCountryCode = (String) data.getCharSequence(IBundleDataKey.END_COUNTRY_CODE);
+						Log.i(TAG, "scheduling from third party return status-->" + result.getStatus());
+						load(false);
+						try {
+							// planId: -1 , is not save into db.
+							loadScheduleResult(-1, result, startCountryCode, endCountryCode);
+						} catch (Exception e) {
+							Log.e(TAG, ExceptionUtils.getStackTrace(e));
+						}
+					} else {
+						Toast.makeText(context, context.getResources().getString(R.string.return_error), Toast.LENGTH_LONG).show();
+					}
+
+				}
+			};
+		}
+		return httpResponseHandler;
+
 	}
 
 	protected void reloadView() {
@@ -229,15 +240,37 @@ public class ScheduleFragment extends Fragment implements IFragment {
 				wholeView.removeViewAt(0);
 				wholeView.addView(formView, 0);
 			}
+			
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public void passValuesByFocus(Object... objects) throws Exception {
-		if (objects != null) {
-			int planId = (Integer) objects[0];
-			GoogleDistanceMetrix googleDistanceMetrix = (GoogleDistanceMetrix) objects[1];
-			loadScheduleResult(planId, googleDistanceMetrix);
+	public void passValuesByFocus(int fragmentEventId, Object... objects) throws Exception {
+
+		switch (fragmentEventId) {
+		case FragmentEvent.LOAD_PLAN:
+			if (objects != null) {
+				int planId = (Integer) objects[0];
+				GoogleDistanceMetrix googleDistanceMetrix = (GoogleDistanceMetrix) objects[1];
+				String startCountryCode = (String) objects[2];
+				String endCountryCode = (String) objects[3];
+				loadScheduleResult(planId, googleDistanceMetrix, startCountryCode, endCountryCode);
+			}
+			break;
+		case FragmentEvent.SCHEDULE_NEW_PLACES:
+			if (objects != null) {
+				ArrayList<String> newPlaces = (ArrayList<String>) objects[0];
+				String startCountryCodeStr = (String) objects[1];
+				String endCountryCodeStr = (String) objects[2];
+				CountryCode startCountryCode = CountryCode.valueOf(startCountryCodeStr);
+				ThirdPartyHandler tp = ThirdPartyHandler.getInstance();
+				tp.invokeDistanceTimeEvent(httpResponseHandler, newPlaces, startCountryCode);
+			}
+			break;
+		case FragmentEvent.NONE:
+			break;
+		default:
 		}
 
 	}

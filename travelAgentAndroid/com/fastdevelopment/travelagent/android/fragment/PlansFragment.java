@@ -17,6 +17,8 @@ import android.widget.FrameLayout;
 
 import com.fastdevelopment.travelagent.android.R;
 import com.fastdevelopment.travelagent.android.activity.MainActivity;
+import com.fastdevelopment.travelagent.android.common.ServerConstants.FragmentEvent;
+import com.fastdevelopment.travelagent.android.common.ServerConstants.FragmentIndex;
 import com.fastdevelopment.travelagent.android.common.ServerConstants.IJson2PojoConst;
 import com.fastdevelopment.travelagent.android.common.ServerConstants.OrmModelType;
 import com.fastdevelopment.travelagent.android.common.ServerConstants.PojoModelType;
@@ -76,7 +78,7 @@ public class PlansFragment extends Fragment implements IFragment {
 				JSONObject json = new JSONObject(jsonStr);
 				GoogleDistanceMetrix googleDistanceMetrix = new GoogleDistanceMetrix();
 				parser.parsingJsonValueToPojo(IJson2PojoConst.JSON2POJO_DATA_PACKAGE, json, googleDistanceMetrix);
-				mainActivity.changeFragement(0, planModel.getId(), googleDistanceMetrix);
+				mainActivity.changeFragement(FragmentIndex.SCHEDULE, FragmentEvent.LOAD_PLAN, planModel.getId(), googleDistanceMetrix, planModel.getStartCountryCode(), planModel.getEndCountryCode());
 			}
 
 		}
@@ -128,7 +130,7 @@ public class PlansFragment extends Fragment implements IFragment {
 	}
 
 	@Override
-	public void passValuesByFocus(Object... objects) throws Exception {
+	public void passValuesByFocus(int fragmentEventId, Object... objects) throws Exception {
 		// TODO Auto-generated method stub
 
 	}

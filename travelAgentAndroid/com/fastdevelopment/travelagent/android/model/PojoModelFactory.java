@@ -40,6 +40,8 @@ public abstract class PojoModelFactory {
 			planModel.setId(plan.getId());
 			planModel.setName(plan.getName());
 			planModel.setContent(plan.getContent());
+			planModel.setStartCountryCode(plan.getStartCountryCode());
+			planModel.setEndCountryCode(plan.getEndCountryCode());
 			break;
 		default:
 		}
