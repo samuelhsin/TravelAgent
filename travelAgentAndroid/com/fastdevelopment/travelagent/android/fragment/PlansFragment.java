@@ -122,16 +122,21 @@ public class PlansFragment extends Fragment implements IFragment {
 	}
 
 	@Override
-	public void onFocusChange(View v, boolean hasFocus) {
-		if (hasFocus) {
-			refreshGridView();
-		}
-
-	}
-
-	@Override
 	public void passValuesByFocus(int fragmentEventId, Object... objects) throws Exception {
-		// TODO Auto-generated method stub
+		switch (fragmentEventId) {
+		case FragmentEvent.RELOAD:
+			refreshGridView();
+			break;
+		case FragmentEvent.CLICK_FOCUS:
+			boolean hasFocus = (Boolean) objects[0];
+			if (hasFocus) {
+				refreshGridView();
+			}
+			break;
+		case FragmentEvent.NONE:
+			break;
+		default:
+		}
 
 	}
 }

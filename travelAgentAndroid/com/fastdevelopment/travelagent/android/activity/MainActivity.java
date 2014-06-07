@@ -72,16 +72,15 @@ public class MainActivity extends FragmentActivity {
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		// TODO Auto-generated method stub
-		super.onActivityResult(requestCode, resultCode, data);
 
 		switch (requestCode) {
 		case IStartActivityRequestCode.PICK_PLACES:
+			loadResultIntentData(data);
 			break;
 		default:
 		}
 
-		loadResultIntentData(data);
+		// super.onActivityResult(requestCode, resultCode, data);
 
 	}
 
@@ -134,8 +133,9 @@ public class MainActivity extends FragmentActivity {
 					ArrayList<String> places = intent.getStringArrayListExtra(IIntentDataKey.PLACES);
 					String startCountryCode = extraBundle.getString(IIntentDataKey.START_COUNTRY_CODE);
 					String endCountryCode = extraBundle.getString(IIntentDataKey.END_COUNTRY_CODE);
+					int planId = extraBundle.getInt(IIntentDataKey.PLAN_ID);
 					if (places != null) {
-						this.changeFragement(fragmentIndex, fragmentEventId, places, startCountryCode, endCountryCode);
+						this.changeFragement(fragmentIndex, fragmentEventId, planId, places, startCountryCode, endCountryCode);
 					}
 
 					break;

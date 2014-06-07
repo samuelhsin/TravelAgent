@@ -14,9 +14,10 @@ import com.fastdevelopment.travelagent.android.thirdparty.data.GoogleDistanceMet
 
 public abstract class BundleDataFactory {
 
-	public static Bundle createBundleData(GoogleDistanceMetrix googleDistanceMetrix, String startCountryCode, String endCountryCode) throws Exception {
+	public static Bundle createBundleData(int planId, GoogleDistanceMetrix googleDistanceMetrix, String startCountryCode, String endCountryCode) throws Exception {
 		Bundle data = new Bundle();
 		data.putSerializable(IBundleDataKey.GOOGLE_DISTANCE_METRIX, googleDistanceMetrix);
+		data.putInt(IBundleDataKey.PLAN_ID, planId);
 		data.putCharSequence(IBundleDataKey.START_COUNTRY_CODE, startCountryCode);
 		data.putCharSequence(IBundleDataKey.END_COUNTRY_CODE, endCountryCode);
 		return data;

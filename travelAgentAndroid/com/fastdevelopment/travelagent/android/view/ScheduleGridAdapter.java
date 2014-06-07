@@ -25,10 +25,13 @@ public class ScheduleGridAdapter extends ArrayAdapter<IPojoModel> {
 	private GoogleDistanceMetrix googleDistanceMetrix;
 
 	private Resources resources = ServerConfig.resources;
+	
+	private List<IPojoModel> items;
 
 	public ScheduleGridAdapter(Context context, List<IPojoModel> objects, GoogleDistanceMetrix googleDistanceMetrix) {
 		super(context, 0, objects);
 		this.googleDistanceMetrix = googleDistanceMetrix;
+		items = objects;
 	}
 
 	@Override
@@ -54,6 +57,14 @@ public class ScheduleGridAdapter extends ArrayAdapter<IPojoModel> {
 
 	public GoogleDistanceMetrix getGoogleDistanceMetrix() {
 		return googleDistanceMetrix;
+	}
+
+	public List<IPojoModel> getItems() {
+		return items;
+	}
+
+	public void setItems(List<IPojoModel> items) {
+		this.items = items;
 	}
 
 }

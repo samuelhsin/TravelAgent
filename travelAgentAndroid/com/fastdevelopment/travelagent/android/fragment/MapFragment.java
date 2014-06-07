@@ -80,12 +80,6 @@ public class MapFragment extends Fragment implements IFragment {
 	}
 
 	@Override
-	public void onFocusChange(View v, boolean hasFocus) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public void passValuesByFocus(int fragmentEventId, Object... objects) throws Exception {
 		// TODO Auto-generated method stub
 	}

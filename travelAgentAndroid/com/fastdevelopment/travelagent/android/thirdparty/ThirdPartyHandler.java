@@ -53,7 +53,7 @@ public class ThirdPartyHandler {
 				GoogleDistanceMetrix googleDistanceMetrix = queryDistanceMetrixToGoogleApiByFactualQueryObject(factualQuery, factualQuery);
 
 				Message msg = new Message();
-				Bundle data = BundleDataFactory.createBundleData(googleDistanceMetrix, countryCode.toString(), countryCode.toString());
+				Bundle data = BundleDataFactory.createBundleData(-1, googleDistanceMetrix, countryCode.toString(), countryCode.toString());
 				msg.setData(data);
 				httpResponseHandler.sendMessage(msg);
 
@@ -66,7 +66,7 @@ public class ThirdPartyHandler {
 
 	}
 
-	public boolean invokeDistanceTimeEvent(final Handler httpResponseHandler, final ArrayList<String> places, final CountryCode countryCode) throws Exception {
+	public boolean invokeDistanceTimeEvent(final Handler httpResponseHandler, final int planId, final ArrayList<String> places, final CountryCode countryCode) throws Exception {
 
 		ThirdPartyHandlerWorkObject work = new ThirdPartyHandlerWorkObject() {
 			@Override
@@ -84,7 +84,7 @@ public class ThirdPartyHandler {
 				GoogleDistanceMetrix googleDistanceMetrix = queryDistanceMetrixToGoogleApi(spots.toString(), spots.toString());
 
 				Message msg = new Message();
-				Bundle data = BundleDataFactory.createBundleData(googleDistanceMetrix, countryCode.toString(), countryCode.toString());
+				Bundle data = BundleDataFactory.createBundleData(planId, googleDistanceMetrix, countryCode.toString(), countryCode.toString());
 				msg.setData(data);
 				httpResponseHandler.sendMessage(msg);
 

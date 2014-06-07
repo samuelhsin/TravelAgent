@@ -2,19 +2,26 @@ package com.fastdevelopment.travelagent.android.activity;
 
 import java.util.List;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
+
 import android.graphics.Color;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.LinearLayout;
 
+import com.fastdevelopment.travelagent.android.common.ServerConstants.FragmentEvent;
 import com.fastdevelopment.travelagent.android.component.CusViewPager;
 import com.fastdevelopment.travelagent.android.fragment.IFragment;
 
 public class CusFramePagerAdapter extends FragmentPagerAdapter implements OnPageChangeListener, OnClickListener {
+
+	private static final String TAG = MainActivity.class.getSimpleName();
+
 	private List<Fragment> fragmentsList;
 	private CusViewPager viewPager;
 	private LinearLayout llTab;
@@ -38,7 +45,6 @@ public class CusFramePagerAdapter extends FragmentPagerAdapter implements OnPage
 
 		IFragment focusfragment = (IFragment) getItem(index);
 
-		focusfragment.onFocusChange(focusfragment.getView(), true);
 		focusfragment.passValuesByFocus(fragmentEventId, objects);
 
 		return true;
@@ -88,23 +94,31 @@ public class CusFramePagerAdapter extends FragmentPagerAdapter implements OnPage
 
 	@Override
 	public void onClick(View view) {
-		for (int i = 0; i < llTab.getChildCount(); i++) {
 
-			if (view.equals(llTab.getChildAt(i))) {
+		try {
 
-				llTab.getChildAt(i).setBackgroundColor(Color.YELLOW);
+			for (int i = 0; i < llTab.getChildCount(); i++) {
 
-				IFragment loseFocusfragment = (IFragment) getItem(viewPager.getCurrentItem());
-				loseFocusfragment.onFocusChange(view, false);
+				if (view.equals(llTab.getChildAt(i))) {
 
-				viewPager.setCurrentItem(i);
+					llTab.getChildAt(i).setBackgroundColor(Color.YELLOW);
 
-				IFragment focusfragment = (IFragment) getItem(i);
-				focusfragment.onFocusChange(view, true);
+					IFragment loseFocusfragment = (IFragment) getItem(viewPager.getCurrentItem());
 
-			} else {
-				llTab.getChildAt(i).setBackgroundColor(Color.BLUE);
+					loseFocusfragment.passValuesByFocus(FragmentEvent.CLICK_FOCUS, false);
+
+					viewPager.setCurrentItem(i);
+
+					IFragment focusfragment = (IFragment) getItem(i);
+					focusfragment.passValuesByFocus(FragmentEvent.CLICK_FOCUS, true);
+
+				} else {
+					llTab.getChildAt(i).setBackgroundColor(Color.BLUE);
+				}
 			}
+
+		} catch (Exception e) {
+			Log.e(TAG, ExceptionUtils.getStackTrace(e));
 		}
 	}
 

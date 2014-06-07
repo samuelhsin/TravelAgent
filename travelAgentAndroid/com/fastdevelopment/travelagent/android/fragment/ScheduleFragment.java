@@ -58,9 +58,9 @@ public class ScheduleFragment extends Fragment implements IFragment {
 		formView = (LinearLayout) wholeView.findViewById(R.id.llt_fragment_schedule);
 		// map = ((SupportMapFragment) getFragmentManager().findFragmentById(R.id.support_map_fragment)).getMap();
 
-		//init hanlder
+		// init hanlder
 		initMessageHandler();
-		
+
 		final Spinner spinner = (Spinner) wholeView.findViewById(R.id.spinner_where);
 		progressBar = (ProgressBar) wholeView.findViewById(R.id.progressBar_in_fragment_schedule);
 		progressBar.setVisibility(View.GONE);
@@ -210,11 +210,12 @@ public class ScheduleFragment extends Fragment implements IFragment {
 						GoogleDistanceMetrix result = (GoogleDistanceMetrix) data.getSerializable(IBundleDataKey.GOOGLE_DISTANCE_METRIX);
 						String startCountryCode = (String) data.getCharSequence(IBundleDataKey.START_COUNTRY_CODE);
 						String endCountryCode = (String) data.getCharSequence(IBundleDataKey.END_COUNTRY_CODE);
+						int planId = data.getInt(IBundleDataKey.PLAN_ID);
 						Log.i(TAG, "scheduling from third party return status-->" + result.getStatus());
 						load(false);
 						try {
 							// planId: -1 , is not save into db.
-							loadScheduleResult(-1, result, startCountryCode, endCountryCode);
+							loadScheduleResult(planId, result, startCountryCode, endCountryCode);
 						} catch (Exception e) {
 							Log.e(TAG, ExceptionUtils.getStackTrace(e));
 						}
@@ -230,17 +231,9 @@ public class ScheduleFragment extends Fragment implements IFragment {
 	}
 
 	protected void reloadView() {
-
-	}
-
-	@Override
-	public void onFocusChange(View v, boolean hasFocus) {
-		if (hasFocus) {
-			if (wholeView.getChildAt(0) != formView) {
-				wholeView.removeViewAt(0);
-				wholeView.addView(formView, 0);
-			}
-			
+		if (wholeView.getChildAt(0) != formView) {
+			wholeView.removeViewAt(0);
+			wholeView.addView(formView, 0);
 		}
 	}
 
@@ -260,12 +253,22 @@ public class ScheduleFragment extends Fragment implements IFragment {
 			break;
 		case FragmentEvent.SCHEDULE_NEW_PLACES:
 			if (objects != null) {
-				ArrayList<String> newPlaces = (ArrayList<String>) objects[0];
-				String startCountryCodeStr = (String) objects[1];
-				String endCountryCodeStr = (String) objects[2];
+				int planId = (Integer) objects[0];
+				ArrayList<String> newPlaces = (ArrayList<String>) objects[1];
+				String startCountryCodeStr = (String) objects[2];
+				String endCountryCodeStr = (String) objects[3];
 				CountryCode startCountryCode = CountryCode.valueOf(startCountryCodeStr);
 				ThirdPartyHandler tp = ThirdPartyHandler.getInstance();
-				tp.invokeDistanceTimeEvent(httpResponseHandler, newPlaces, startCountryCode);
+				tp.invokeDistanceTimeEvent(httpResponseHandler, planId, newPlaces, startCountryCode);
+			}
+			break;
+		case FragmentEvent.RELOAD:
+			reloadView();
+			break;
+		case FragmentEvent.CLICK_FOCUS:
+			boolean hasFocus = (Boolean) objects[0];
+			if (hasFocus) {
+				reloadView();
 			}
 			break;
 		case FragmentEvent.NONE:

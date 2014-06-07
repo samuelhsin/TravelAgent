@@ -6,6 +6,7 @@ import java.util.List;
 
 import android.util.Log;
 
+import com.fastdevelopment.travelagent.android.R;
 import com.fastdevelopment.travelagent.android.common.ServerConstants.PojoModelType;
 import com.fastdevelopment.travelagent.android.model.DistanceModel;
 import com.fastdevelopment.travelagent.android.model.IPojoModel;
@@ -45,6 +46,65 @@ public abstract class PlaceTimeFactory {
 		}
 
 		return metrixData;
+	}
+
+	public static List<IPojoModel> calculatePlaceTimePathByOrder(List<String> placeNameOrder, GoogleDistanceMetrix metrixData) throws Exception {
+		List<IPojoModel> result = null;
+
+		if (placeNameOrder != null && !placeNameOrder.isEmpty()) {
+
+			List<String> orgins = metrixData.getOrigin_addresses();
+			List<String> destinations = metrixData.getDestination_addresses();
+			List<GoogleDistance> distances = metrixData.getRows();
+
+			result = new ArrayList<IPojoModel>();
+
+			if (!orgins.isEmpty() && !destinations.isEmpty() && !distances.isEmpty()) {
+
+				int placeNumber = placeNameOrder.size();
+
+				for (int i = 0; i < placeNumber; i++) {
+
+					String placeName = placeNameOrder.get(i);
+
+					int metrixDataIndexForPlaceName = orgins.indexOf(placeName);
+
+					if (metrixDataIndexForPlaceName != -1) {
+						// put place
+						IPojoModel placeModel = new PlaceModel(PojoModelType.PLACE);
+						placeModel.setName(orgins.get(metrixDataIndexForPlaceName));
+						result.add(placeModel);
+
+						int nextIndex = i + 1;
+
+						if (nextIndex < placeNumber) {
+							// put distance
+							GoogleDistance googleDistanceInCurrentPlace = distances.get(metrixDataIndexForPlaceName);
+
+							if (googleDistanceInCurrentPlace != null) {
+								List<GoogleDistanceElement> googleDistanceElement = googleDistanceInCurrentPlace.getElements();
+								int nextMetrixDataIndexForPlaceName = orgins.indexOf(placeNameOrder.get(nextIndex));
+								GoogleDistanceElement distance = googleDistanceElement.get(nextMetrixDataIndexForPlaceName);
+								String distanceStr = null;
+								if (distance != null && "OK".equals(distance.getStatus())) {
+									distanceStr = distance.getDistance().getText();
+								} else {
+									distanceStr = ServerConfig.resources.getString(R.string.unknown);
+								}
+								IPojoModel distanceModel = new DistanceModel(PojoModelType.DISTANCE);
+								distanceModel.setName(distanceStr);
+								result.add(distanceModel);
+							}
+
+						}
+					}
+
+				}
+			}
+
+		}
+
+		return result;
 	}
 
 	public static List<IPojoModel> calculatePlaceTimePath(GoogleDistanceMetrix metrixData) throws Exception {

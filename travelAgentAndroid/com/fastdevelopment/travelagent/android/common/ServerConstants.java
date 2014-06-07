@@ -1,5 +1,7 @@
 package com.fastdevelopment.travelagent.android.common;
 
+import com.google.android.gms.maps.model.LatLng;
+
 public abstract class ServerConstants {
 
 	public static enum PojoModelType {
@@ -72,10 +74,12 @@ public abstract class ServerConstants {
 
 	public static interface FragmentEvent {
 		public static final int NONE = 0;
-		public static final int LOAD_PLAN = 1;
-		public static final int SCHEDULE_NEW_PLACES = 2;
+		public static final int RELOAD = 1;
+		public static final int LOAD_PLAN = 2;
+		public static final int SCHEDULE_NEW_PLACES = 3;
+		public static final int CLICK_FOCUS = 4;
 	}
-	
+
 	public static interface IStartActivityRequestCode {
 		public static final int NONE = 0;
 		public static final int PICK_PLACES = 1;
@@ -83,6 +87,7 @@ public abstract class ServerConstants {
 
 	public static interface IIntentDataKey {
 		public static final String PLAIN_MODEL = "planModel";
+		public static final String PLAN_ID = "planId";
 		public static final String GOOGLE_DISTANCE_METRIX = "googleDistanceMetrix";
 		public static final String START_COUNTRY_CODE = "startCountryCode";
 		public static final String END_COUNTRY_CODE = "endCountryCode";
@@ -92,6 +97,7 @@ public abstract class ServerConstants {
 	}
 
 	public static interface IBundleDataKey {
+		public static final String PLAN_ID = "planId";
 		public static final String START_COUNTRY_CODE = "startCountryCode";
 		public static final String END_COUNTRY_CODE = "endCountryCode";
 		public static final String GOOGLE_DISTANCE_METRIX = "googleDistanceMetrix";
@@ -141,6 +147,11 @@ public abstract class ServerConstants {
 				throw new IllegalArgumentException();
 			}
 		}
+	}
+
+	public static interface ICountryLatLng {
+		public static final LatLng US = new LatLng(37.09024, -95.712891);
+		public static final LatLng FR = new LatLng(46.227638, 2.213749);
 	}
 
 }

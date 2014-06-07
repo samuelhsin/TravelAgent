@@ -18,8 +18,10 @@ import android.widget.Toast;
 import com.fastdevelopment.travelagent.android.R;
 import com.fastdevelopment.travelagent.android.common.ServerConfig;
 import com.fastdevelopment.travelagent.android.common.ServerConstants;
+import com.fastdevelopment.travelagent.android.common.ServerConstants.CountryCode;
 import com.fastdevelopment.travelagent.android.common.ServerConstants.FragmentEvent;
 import com.fastdevelopment.travelagent.android.common.ServerConstants.FragmentIndex;
+import com.fastdevelopment.travelagent.android.common.ServerConstants.ICountryLatLng;
 import com.fastdevelopment.travelagent.android.common.ServerConstants.IIntentDataKey;
 import com.fastdevelopment.travelagent.android.thirdparty.data.GoogleDistanceMetrix;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -32,7 +34,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 public class CusMapActivity extends Activity implements OnMarkerDragListener {
 
-	static final LatLng NKUT = new LatLng(23.979548, 120.696745);
 	private static final String TAG = CusMapActivity.class.getSimpleName();
 	private GoogleMap map;
 	private Context context;
@@ -42,32 +43,64 @@ public class CusMapActivity extends Activity implements OnMarkerDragListener {
 	private CusMapActivity activity;
 	private String startCountryCode;
 	private String endCountryCode;
+	private int planId;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_mapv2);
 
-		map = ((MapFragment) getFragmentManager().findFragmentById(R.id.mapv2)).getMap();
+		try {
 
-		if (map != null) {
+			super.onCreate(savedInstanceState);
+			setContentView(R.layout.activity_mapv2);
 
-			activity = this;
+			map = ((MapFragment) getFragmentManager().findFragmentById(R.id.mapv2)).getMap();
 
-			context = this;
+			if (map != null) {
 
-			resources = ServerConfig.resources;
+				activity = this;
 
-			mapMarker = map.addMarker(new MarkerOptions().position(NKUT).title("南開科技大學").snippet("數位生活創意系").draggable(true));
+				context = this;
 
-			// Move the camera instantly to NKUT with a zoom of 16.
-			map.moveCamera(CameraUpdateFactory.newLatLngZoom(NKUT, 16));
+				resources = ServerConfig.resources;
 
-			map.setOnMarkerDragListener(this);
+				loadIntentData();
 
-			loadIntentData();
+				LatLng country;
+
+				country = getCountryLatLng(startCountryCode);
+
+				mapMarker = map.addMarker(new MarkerOptions().position(country).title(resources.getString(R.string.ti_marker)).draggable(true));
+
+				// Move the camera instantly to country with a zoom of 5.
+				map.moveCamera(CameraUpdateFactory.newLatLngZoom(country, 5));
+
+				map.setOnMarkerDragListener(this);
+
+			}
+
+		} catch (Exception e) {
+			Log.e(TAG, ExceptionUtils.getStackTrace(e));
 		}
 
+	}
+
+	private LatLng getCountryLatLng(String countryCodeStr) throws Exception {
+
+		CountryCode countryCode = CountryCode.valueOf(countryCodeStr);
+
+		LatLng countryLatLng = null;
+
+		switch (countryCode) {
+		case US:
+			countryLatLng = ICountryLatLng.US;
+			break;
+		case FR:
+			countryLatLng = ICountryLatLng.FR;
+			break;
+		default:
+		}
+
+		return countryLatLng;
 	}
 
 	private boolean loadIntentData() {
@@ -80,15 +113,18 @@ public class CusMapActivity extends Activity implements OnMarkerDragListener {
 				return false;
 			}
 
-			GoogleDistanceMetrix googleDistanceMetrix = (GoogleDistanceMetrix) extraBundle.get(ServerConstants.IIntentDataKey.GOOGLE_DISTANCE_METRIX);
+			GoogleDistanceMetrix googleDistanceMetrix = (GoogleDistanceMetrix) extraBundle.get(IIntentDataKey.GOOGLE_DISTANCE_METRIX);
 
 			if (googleDistanceMetrix != null) {
 				places = new ArrayList<String>();
 				places.addAll(googleDistanceMetrix.getOrigin_addresses());
 			}
 
-			startCountryCode = extraBundle.getString(ServerConstants.IIntentDataKey.START_COUNTRY_CODE);
-			endCountryCode = extraBundle.getString(ServerConstants.IIntentDataKey.END_COUNTRY_CODE);
+			startCountryCode = extraBundle.getString(IIntentDataKey.START_COUNTRY_CODE);
+			endCountryCode = extraBundle.getString(IIntentDataKey.END_COUNTRY_CODE);
+			
+			planId = extraBundle.getInt(IIntentDataKey.PLAN_ID);
+			
 			return true;
 		} catch (Exception e) {
 			Log.e(TAG, ExceptionUtils.getStackTrace(e));
@@ -141,6 +177,8 @@ public class CusMapActivity extends Activity implements OnMarkerDragListener {
 					intent.putExtra(IIntentDataKey.FRAGMENT_EVENT_ID, FragmentEvent.SCHEDULE_NEW_PLACES);
 					intent.putExtra(IIntentDataKey.START_COUNTRY_CODE, startCountryCode);
 					intent.putExtra(IIntentDataKey.END_COUNTRY_CODE, endCountryCode);
+					intent.putExtra(IIntentDataKey.PLAN_ID, planId);
+					
 					setResult(RESULT_OK, intent);
 					finish();
 					// activity.startActivityForResult(intent, IStartActivityRequestCode.PICK_PLACES);

@@ -1,5 +1,6 @@
 package com.fastdevelopment.travelagent.android.view;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -24,17 +25,17 @@ import com.fastdevelopment.travelagent.android.R;
 import com.fastdevelopment.travelagent.android.activity.MainActivity;
 import com.fastdevelopment.travelagent.android.common.PlaceTimeFactory;
 import com.fastdevelopment.travelagent.android.common.ServerConfig;
-import com.fastdevelopment.travelagent.android.common.ServerConstants;
 import com.fastdevelopment.travelagent.android.common.ServerConstants.FragmentEvent;
 import com.fastdevelopment.travelagent.android.common.ServerConstants.FragmentIndex;
+import com.fastdevelopment.travelagent.android.common.ServerConstants.IIntentDataKey;
 import com.fastdevelopment.travelagent.android.common.ServerConstants.IStartActivityRequestCode;
+import com.fastdevelopment.travelagent.android.common.ServerConstants.PojoModelType;
 import com.fastdevelopment.travelagent.android.component.DragGridView;
 import com.fastdevelopment.travelagent.android.fragment.ScheduleFragment;
 import com.fastdevelopment.travelagent.android.model.IPojoModel;
 import com.fastdevelopment.travelagent.android.orm.model.Plan;
 import com.fastdevelopment.travelagent.android.pojo2json.Pojo2JsonParser;
 import com.fastdevelopment.travelagent.android.thirdparty.data.GoogleDistanceMetrix;
-import com.google.android.maps.MapActivity;
 import com.j256.ormlite.dao.Dao;
 
 public class ScheduleGridView extends DragGridView {
@@ -86,7 +87,30 @@ public class ScheduleGridView extends DragGridView {
 	}
 
 	protected boolean recalculateGridItem() throws Exception {
-		// TODO
+
+		ScheduleGridAdapter adapter = (ScheduleGridAdapter) getAdapter();
+
+		List<String> newPlacesOrder = new ArrayList<String>();
+
+		List<IPojoModel> items = adapter.getItems();
+
+		// 0. get place list
+		for (IPojoModel model : items) {
+			if (PojoModelType.PLACE == model.getPojoModelType()) {
+				newPlacesOrder.add(model.getName());
+			}
+		}
+
+		// 1. follow new items' order to rearrange distances
+		List<IPojoModel> newItems = PlaceTimeFactory.calculatePlaceTimePathByOrder(newPlacesOrder, adapter.getGoogleDistanceMetrix());
+
+		// 2. renew adapter
+		ScheduleGridAdapter newAdapter = new ScheduleGridAdapter(adapter.getContext(), newItems, adapter.getGoogleDistanceMetrix());
+		setAdapter(newAdapter);
+
+		// 3. change values array with your new data then update the adapter
+		newAdapter.notifyDataSetChanged();
+
 		return true;
 	}
 
@@ -131,24 +155,34 @@ public class ScheduleGridView extends DragGridView {
 	@Override
 	protected void onDropInOverDiffObject() throws Exception {
 		ScheduleGridAdapter adapter = (ScheduleGridAdapter) getAdapter();
+
+		// avoid to change first and last item
+		if (this.getDragSrcPosition() == 0 || this.getDragDesPosition() == 0) {
+			return;
+		}
+
 		IPojoModel dragSrcItem = adapter.getItem(this.getDragSrcPosition());
 		IPojoModel dragTargetItem = adapter.getItem(this.getDragDesPosition());
 
-		adapter.remove(dragSrcItem);
-		adapter.insert(dragSrcItem, this.getDragDesPosition());
+		// change position
+		if (PojoModelType.PLACE == dragSrcItem.getPojoModelType() && PojoModelType.PLACE == dragTargetItem.getPojoModelType()) {
 
-		adapter.remove(dragTargetItem);
-		adapter.insert(dragTargetItem, this.getDragSrcPosition());
+			adapter.remove(dragSrcItem);
+			adapter.insert(dragSrcItem, this.getDragDesPosition());
 
-		System.out.println("srcPosition=" + this.getDragSrcPosition() + "  dragPosition=" + this.getDragDesPosition());
-		// Toast.makeText(getContext(), adapter.getList().toString(), Toast.LENGTH_SHORT).show();
+			adapter.remove(dragTargetItem);
+			adapter.insert(dragTargetItem, this.getDragSrcPosition());
 
-		boolean isSuccess = recalculateGridItem();
+			boolean isSuccess = recalculateGridItem();
 
-		if (!isSuccess) {
-			// TODO rollback
+			if (!isSuccess) {
+				// rollback
+				adapter.remove(dragSrcItem);
+				adapter.insert(dragSrcItem, this.getDragSrcPosition());
+				adapter.remove(dragTargetItem);
+				adapter.insert(dragTargetItem, this.getDragDesPosition());
+			}
 		}
-
 	}
 
 	public void onDelete(MotionEvent ev) {
@@ -198,6 +232,7 @@ public class ScheduleGridView extends DragGridView {
 		super.onDrop(ev);
 
 		// 移除物件
+		// check drop is on trash can
 		onDelete(ev);
 
 	}
@@ -223,12 +258,13 @@ public class ScheduleGridView extends DragGridView {
 				GoogleDistanceMetrix googleDistanceMetrix = adapter.getGoogleDistanceMetrix();
 
 				// add place
-				//Intent intent = new Intent(activity, MapActivity.class);
+				// Intent intent = new Intent(activity, MapActivity.class);
 				Intent intent = new Intent("com.fastdevelopment.travelagent.android.activity.MapActivity");
-				intent.putExtra(ServerConstants.IIntentDataKey.GOOGLE_DISTANCE_METRIX, googleDistanceMetrix);
-				intent.putExtra(ServerConstants.IIntentDataKey.START_COUNTRY_CODE, startCountryCode);
-				intent.putExtra(ServerConstants.IIntentDataKey.END_COUNTRY_CODE, endCountryCode);
-				//activity.startActivity(intent);
+				intent.putExtra(IIntentDataKey.GOOGLE_DISTANCE_METRIX, googleDistanceMetrix);
+				intent.putExtra(IIntentDataKey.START_COUNTRY_CODE, startCountryCode);
+				intent.putExtra(IIntentDataKey.END_COUNTRY_CODE, endCountryCode);
+				intent.putExtra(IIntentDataKey.PLAN_ID, planId);
+				// activity.startActivity(intent);
 				activity.startActivityForResult(intent, IStartActivityRequestCode.PICK_PLACES);
 			}
 		});
@@ -343,7 +379,7 @@ public class ScheduleGridView extends DragGridView {
 				planId = plan.getId();
 				toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.add_success), Toast.LENGTH_LONG);
 				// change to plan fragment
-				activity.changeFragement(FragmentIndex.PLAN, FragmentEvent.NONE);
+				activity.changeFragement(FragmentIndex.PLAN, FragmentEvent.RELOAD);
 				isSuccess = true;
 			} else {
 				toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.add_failed), Toast.LENGTH_LONG);
@@ -391,7 +427,7 @@ public class ScheduleGridView extends DragGridView {
 				planId = plan.getId();
 				toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.save_success), Toast.LENGTH_LONG);
 				// change to plan fragment
-				activity.changeFragement(FragmentIndex.PLAN, FragmentEvent.NONE);
+				activity.changeFragement(FragmentIndex.PLAN, FragmentEvent.RELOAD);
 				isSuccess = true;
 			} else {
 				toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.save_failed), Toast.LENGTH_LONG);
@@ -428,7 +464,7 @@ public class ScheduleGridView extends DragGridView {
 						isSuccess = false;
 					}
 					// change to plan fragment
-					activity.changeFragement(FragmentIndex.PLAN, FragmentEvent.NONE);
+					activity.changeFragement(FragmentIndex.PLAN, FragmentEvent.RELOAD);
 				} else {
 					toast = Toast.makeText(parentView.getContext(), resource.getString(R.string.delete_success), Toast.LENGTH_LONG);
 					fragment.loadScheduleInput();
