@@ -1,0 +1,12 @@
+
+1. tag time in distance
+2. add route line map view
+
+3. add transportation info in best route caculation
+4. add time limit in plan and separate by day
+
+6. crawl some travel info spot in plan
+
+7. 
+
+8. add money consideration
