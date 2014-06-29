@@ -189,6 +189,7 @@ public class ThirdPartyHandler {
 		}
 		IHttpConnectedService httpService = new RestConnectedService();
 		GoogleDistanceMetrix googleDistanceMetrix = new GoogleDistanceMetrix();
+		googleDistanceMetrix.setTransportation(GoogleDistanceMetrixMode.BICYCLING.toString());
 		JSONObject json = null;
 		try {
 			httpService.initHttpClient(443);

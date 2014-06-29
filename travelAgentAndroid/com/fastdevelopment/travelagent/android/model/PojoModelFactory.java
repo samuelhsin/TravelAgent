@@ -17,7 +17,7 @@ public abstract class PojoModelFactory {
 			result = new ArrayList<IPojoModel>();
 
 			for (int i = 0; i < ormModelList.size(); i++) {
-				IPojoModel pojoModel = createPojoModel(ormModelType, ormModelList.get(i));
+				IPojoModel pojoModel = transOrmToPojoModel(ormModelType, ormModelList.get(i));
 				result.add(pojoModel);
 			}
 		}
@@ -26,7 +26,19 @@ public abstract class PojoModelFactory {
 
 	}
 
-	private static IPojoModel createPojoModel(OrmModelType ormModelType, IOrmModel ormModel) {
+	public static IPojoModel createPlaceModel(String name) {
+		IPojoModel placeModel = new PlaceModel(PojoModelType.PLACE);
+		placeModel.setName(name);
+		return placeModel;
+	}
+
+	public static IPojoModel createDistanceModel(String name) {
+		IPojoModel distanceModel = new DistanceModel(PojoModelType.DISTANCE);
+		distanceModel.setName(name);
+		return distanceModel;
+	}
+
+	private static IPojoModel transOrmToPojoModel(OrmModelType ormModelType, IOrmModel ormModel) {
 
 		if (ormModel == null) {
 			return null;

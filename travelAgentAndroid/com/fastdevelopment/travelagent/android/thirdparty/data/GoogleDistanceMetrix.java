@@ -1,7 +1,6 @@
 package com.fastdevelopment.travelagent.android.thirdparty.data;
 
 import java.util.List;
-import java.util.Map;
 
 import com.fastdevelopment.travelagent.android.json2pojo.JsonDataMethodAnnotation;
 import com.fastdevelopment.travelagent.android.json2pojo.JsonObject;
@@ -27,6 +26,8 @@ public class GoogleDistanceMetrix extends JsonObject {
 	 */
 	@JsonDataMethodAnnotation
 	String status;
+
+	String transportation;
 
 	public List<String> getDestination_addresses() {
 		return destination_addresses;
@@ -58,6 +59,14 @@ public class GoogleDistanceMetrix extends JsonObject {
 
 	public void setStatus(String status) {
 		this.status = status;
+	}
+
+	public String getTransportation() {
+		return transportation;
+	}
+
+	public void setTransportation(String transportation) {
+		this.transportation = transportation;
 	}
 
 }

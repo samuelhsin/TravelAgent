@@ -4,13 +4,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import android.content.res.Resources;
 import android.util.Log;
 
 import com.fastdevelopment.travelagent.android.R;
-import com.fastdevelopment.travelagent.android.common.ServerConstants.PojoModelType;
-import com.fastdevelopment.travelagent.android.model.DistanceModel;
 import com.fastdevelopment.travelagent.android.model.IPojoModel;
-import com.fastdevelopment.travelagent.android.model.PlaceModel;
+import com.fastdevelopment.travelagent.android.model.PojoModelFactory;
 import com.fastdevelopment.travelagent.android.thirdparty.data.GoogleDistance;
 import com.fastdevelopment.travelagent.android.thirdparty.data.GoogleDistanceElement;
 import com.fastdevelopment.travelagent.android.thirdparty.data.GoogleDistanceMetrix;
@@ -18,6 +17,8 @@ import com.fastdevelopment.travelagent.android.thirdparty.data.GoogleDistanceMet
 public abstract class PlaceTimeFactory {
 
 	private static final String TAG = PlaceTimeFactory.class.getSimpleName();
+
+	private static final Resources resources = ServerConfig.resources;
 
 	public static GoogleDistanceMetrix removePlace(GoogleDistanceMetrix metrixData, String placeName) throws Exception {
 
@@ -71,8 +72,7 @@ public abstract class PlaceTimeFactory {
 
 					if (metrixDataIndexForPlaceName != -1) {
 						// put place
-						IPojoModel placeModel = new PlaceModel(PojoModelType.PLACE);
-						placeModel.setName(orgins.get(metrixDataIndexForPlaceName));
+						IPojoModel placeModel = PojoModelFactory.createPlaceModel(orgins.get(metrixDataIndexForPlaceName));
 						result.add(placeModel);
 
 						int nextIndex = i + 1;
@@ -85,14 +85,9 @@ public abstract class PlaceTimeFactory {
 								List<GoogleDistanceElement> googleDistanceElement = googleDistanceInCurrentPlace.getElements();
 								int nextMetrixDataIndexForPlaceName = orgins.indexOf(placeNameOrder.get(nextIndex));
 								GoogleDistanceElement distance = googleDistanceElement.get(nextMetrixDataIndexForPlaceName);
-								String distanceStr = null;
-								if (distance != null && "OK".equals(distance.getStatus())) {
-									distanceStr = distance.getDistance().getText();
-								} else {
-									distanceStr = ServerConfig.resources.getString(R.string.unknown);
-								}
-								IPojoModel distanceModel = new DistanceModel(PojoModelType.DISTANCE);
-								distanceModel.setName(distanceStr);
+								
+								IPojoModel distanceModel = PojoModelFactory.createDistanceModel(composeDistanceName(metrixData.getTransportation(), distance));
+
 								result.add(distanceModel);
 							}
 
@@ -121,8 +116,7 @@ public abstract class PlaceTimeFactory {
 				result = new ArrayList<IPojoModel>();
 
 				// put first place
-				IPojoModel placeModel = new PlaceModel(PojoModelType.PLACE);
-				placeModel.setName(orgins.get(0));
+				IPojoModel placeModel = PojoModelFactory.createPlaceModel(orgins.get(0));
 				result.add(placeModel);
 				currentPlacePosition = 0;
 				schedulePlaces.add(0);
@@ -146,7 +140,9 @@ public abstract class PlaceTimeFactory {
 							if (temp != 0 && (temp < benchmark || benchmark == -1) && !schedulePlaces.contains(j)) {
 								benchmark = temp;
 								benchmarkIndex = j;
-								distanceStr = element.getDistance().getText();
+								
+								distanceStr = composeDistanceName(metrixData.getTransportation(), element);
+								
 							}
 						}
 
@@ -154,13 +150,11 @@ public abstract class PlaceTimeFactory {
 
 					if (benchmarkIndex != -1) {
 						// put distance
-						IPojoModel distanceModel = new DistanceModel(PojoModelType.DISTANCE);
-						distanceModel.setName(distanceStr);
+						IPojoModel distanceModel = PojoModelFactory.createDistanceModel(distanceStr);
 						result.add(distanceModel);
 
 						// put next place
-						placeModel = new PlaceModel(PojoModelType.PLACE);
-						placeModel.setName(orgins.get(benchmarkIndex));
+						placeModel = PojoModelFactory.createPlaceModel(orgins.get(benchmarkIndex));
 						result.add(placeModel);
 						currentPlacePosition = benchmarkIndex;
 						schedulePlaces.add(benchmarkIndex);
@@ -175,14 +169,11 @@ public abstract class PlaceTimeFactory {
 				List<GoogleDistanceElement> elements = row.getElements();
 				GoogleDistanceElement element = elements.get(0);
 				if ("OK".equals(element.getStatus())) {
-					String distanceStr = element.getDistance().getText();
-					IPojoModel distanceModel = new DistanceModel(PojoModelType.DISTANCE);
-					distanceModel.setName(distanceStr);
+					IPojoModel distanceModel = PojoModelFactory.createDistanceModel(composeDistanceName(metrixData.getTransportation(), element));
 					result.add(distanceModel);
 
 					// put first place (return to first place)
-					placeModel = new PlaceModel(PojoModelType.PLACE);
-					placeModel.setName(orgins.get(0));
+					placeModel = PojoModelFactory.createPlaceModel(orgins.get(0));
 					result.add(placeModel);
 					currentPlacePosition = 0;
 					schedulePlaces.add(0);
@@ -194,4 +185,23 @@ public abstract class PlaceTimeFactory {
 
 		return result;
 	}
+
+	private static String composeDistanceName(String transportation, GoogleDistanceElement element) {
+		StringBuffer distanceSb = new StringBuffer();
+		if (element != null && "OK".equals(element.getStatus())) {
+			distanceSb.append(resources.getString(R.string.ti_mode));
+			distanceSb.append(transportation);
+			distanceSb.append(";");
+			distanceSb.append(resources.getString(R.string.ti_distance));
+			distanceSb.append(element.getDistance().getText());
+			distanceSb.append(";");
+			distanceSb.append(resources.getString(R.string.ti_time));
+			distanceSb.append(element.getDuration().getText());
+		} else {
+			distanceSb.append(resources.getString(R.string.unknown));
+		}
+
+		return distanceSb.toString();
+	}
+
 }
